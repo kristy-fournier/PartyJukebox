@@ -12,8 +12,6 @@ The client is a web application that can be hosted on any server, it need not be
 \
 The server side consists of 3 files
 
-[//]: # (Change this below later, the files will likely be renamed)
-
 ```
 sound/
 databaseGenerator.py
@@ -36,6 +34,8 @@ These are specific details on each section of the app, and how to use them
 - `databaseGenerator.py` scans through mp3 files and gets information about them
     - `Filename, Title, Artist, Art, Length` are all saved 
         - *If the title and artist are not in the mp3 metadata, it looks for a format of* `TITLE_ARTIST.mp3` *and otherwise defaults to the file name as the title, and no artist*
+    - Running with `--mode (update/new)` either updates the current database and only adds new songs, or recreates the entire database (update is default)
+    - Running with `--art (True/False)` retrieves art from  LastFM or doesn't (True is default)
 - `songDatabase.json` stores all the information about each song in this format:
 ```
 [
