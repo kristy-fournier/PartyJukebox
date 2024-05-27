@@ -38,6 +38,7 @@ These are specific details on each section of the app, and how to use them
         - Art is retrieved from LastFM
     - Running with `--mode (update/new)` either updates the current database and only adds new songs, or recreates the entire database (update is default)
     - Running with `--art (True/False)` retrieves art from  LastFM or doesn't (True is default)
+        - *Can only generate one song / 0.25 seconds, to avoid pinging the LastFM server too much*
 - `songDatabase.json` stores all the information about each song in this format:
 ```
 [

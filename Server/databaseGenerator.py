@@ -2,11 +2,10 @@ import os
 from mutagen.easyid3 import EasyID3
 from mutagen.mp3 import MP3
 import requests, ast, time, math, argparse, json
-
-loading = ["-","\\","|","/"]
-
+# place your lastfm key in the slot below
 apikeylastfm="YourLastfmKeyHere"
 
+loading = ["-","\\","|","/"]
 songFiles = os.listdir(r'./sound')
 parser=argparse.ArgumentParser(description="Options for the generation of the song database")
 parser.add_argument('-m', '--mode', help='new/update: Remake database or update current', default= "update")
