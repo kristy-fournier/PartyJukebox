@@ -1,0 +1,15 @@
+{
+    "name": "Jukebox Remote",
+    "short_name": "Jukebox Remote",
+    "start_url": "index.html",
+    "display": "standalone",
+    "background_color": "#eeeeee",
+    "theme_color": "#eeeeee",
+    "orientation": "portrait-primary",
+    "icons": [
+      {
+        "src": "/favicon.ico",
+        "type": "image/ico", "sizes": "100x100"
+      }
+    ]
+  }
