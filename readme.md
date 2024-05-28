@@ -59,6 +59,7 @@ These are specific details on each section of the app, and how to use them
 ![image](./Screenshot_RAW.png) \
 From left to right:
 - The playlist button shows the current queue of songs
+    - The currently playing song is identified, and has the duration listed
 - The play-pause button toggles playing
 - The skip button goes to the next track
 - The search button opens the search screen (pictured)
@@ -66,6 +67,4 @@ From left to right:
     - Server IP allows you to change the ip that the site connects to
     - Alert time changes how long error/confirmation messages are shown for (Default 2s)
     - Party Mode adds new songs to the queue when the queue has only 1 song in it
-    - Volume controls the vlc volume of the connected server
-
-
+    - Volume controls the VLC volume of the connected server
