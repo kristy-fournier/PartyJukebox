@@ -11,7 +11,7 @@ The client is a web application that can be hosted on any server, it need not be
 ### Server Setup:
 **Pre-setup:** If you want the songs to have art associated with them, it is all hosted on and retrieved from LastFM, and you will need to sign up for a developer app, and put your key in the database generator \
 \
-The server side consists of 3 files
+The server side consists of 3 files:
 
 ```
 sound/
@@ -69,3 +69,4 @@ From left to right:
     - Alert time changes how long error/confirmation messages are shown for (Default 2s)
     - Party Mode adds new songs to the queue when the queue has only 1 song in it
     - Volume controls the VLC volume of the connected server
+        - *Because the volume can be controlled in the client, for best usage set your device volume as high as possible and turn it down using this slider*
