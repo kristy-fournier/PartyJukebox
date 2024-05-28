@@ -17,7 +17,7 @@ player = fakeplayer.media_player_new()
 player.audio_set_volume(100)
 app = Flask(__name__)
 CORS(app)
-with open('songDatabase.json', 'r') as handle:
+with open('./songDatabase.json', 'r') as handle:
     songDatabaseList = json.load(handle)
 
 def queueSong(song):
@@ -124,5 +124,5 @@ def getPlaylist():
     return tempPlaylist
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port='25565')
+    app.run(host='0.0.0.0', port='19054')
     

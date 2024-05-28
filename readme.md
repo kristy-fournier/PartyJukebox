@@ -54,6 +54,7 @@ These are specific details on each section of the app, and how to use them
 - `webbyBits.py` imports the database, runs all music playing, and accepts all commands from clients
     - Searches return matching songs
     - Accepts Play-Pause and Skip commands
+    - Uses port 19054 by default
 
 ### Client:
 ![image](./Screenshot_RAW.png) \
