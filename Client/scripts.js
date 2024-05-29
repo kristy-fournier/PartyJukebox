@@ -10,7 +10,7 @@ async function alertText(text="Song Added!") {
 // it to return the right stuff and javascript is asyrcronouse (boo)
 async function getFromServer(bodyInfo, source="") {
     try{
-        const response = await fetch("http://" + ip+"/"+source, {
+        const response = await fetch("http://"+ip+"/"+source, {
             method: "POST",
             body: JSON.stringify(bodyInfo),
             headers: {
