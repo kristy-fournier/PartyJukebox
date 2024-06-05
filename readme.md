@@ -27,6 +27,8 @@ webbyBits.py
 4. Run `webbyBits.py`
 
 You can now connect with the client and use the app as normal. \
+*Make sure you have turned down/off any other apps that might make noise or notification sounds* \
+\
 Read on for specific information on each piece of the app.
 ## Details
 These are specific details on each section of the app, and how to use them
