@@ -59,7 +59,7 @@ These are specific details on each section of the app, and how to use them
     - Uses port 19054 by default
 
 ### Client:
-![image](./Screenshot_RAW.png) \
+![image](./Screenshot_MAIN.png) \
 From left to right:
 - The playlist button shows the current queue of songs
     - The currently playing song is identified, and has the duration listed
