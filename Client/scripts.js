@@ -4,7 +4,9 @@ async function alertText(text="Song Added!") {
     alertbox = document.getElementById("alert");
     alertbox.innerHTML = text;
     await new Promise(r => setTimeout(r, alertTime*1000));
-    alertbox.innerHTML = ""
+    if (alertbox.innerHTML == text) {
+        alertbox.innerHTML = ""
+    }
 }
 // a lot of this is kinda waffly because i was trying to get 
 // it to return the right stuff and javascript is asyrcronouse (boo)
