@@ -3,7 +3,7 @@
 ## Purpose
 The **Party Jukebox** is a program that allows many people to add music, skip songs, play, and pause from any web device to the same device and playlist. \
 This was created for a personal use case for parties, and is a simple, (mostly) functional solution to have a collective playlist for local mp3 files. \
-Main strenghts compared to doing something similar using Spotify are that you can limit the songs that can be played to your selection. Songs can be chosen, but only from a list
+The main advantage compared to doing something similar using Spotify is that you can limit the songs that can be played to your selection. Songs can be chosen, but only from a list.
 ## Basic Setup
 ### Client Setup:
 The client is a web application that can be hosted on any server, it need not be the same device running the music player. 
@@ -11,7 +11,7 @@ The client is a web application that can be hosted on any server, it need not be
 ### Server Setup:
 **Pre-setup:** If you want the songs to have art associated with them, it is all hosted on and retrieved from LastFM, and you will need to sign up for a developer app, and put your key in the database generator \
 \
-The server side consists of 3 files
+The server side consists of 3 files:
 
 ```
 sound/
@@ -27,6 +27,8 @@ webbyBits.py
 4. Run `webbyBits.py`
 
 You can now connect with the client and use the app as normal. \
+*Make sure you have turned down/off any other apps that might make noise or notification sounds* \
+\
 Read on for specific information on each piece of the app.
 ## Details
 These are specific details on each section of the app, and how to use them
@@ -38,6 +40,7 @@ These are specific details on each section of the app, and how to use them
         - Art is retrieved from LastFM
     - Running with `--mode (update/new)` either updates the current database and only adds new songs, or recreates the entire database (update is default)
     - Running with `--art (True/False)` retrieves art from  LastFM or doesn't (True is default)
+        - *Can only generate one song / 0.25 seconds, to avoid pinging the LastFM server too much*
 - `songDatabase.json` stores all the information about each song in this format:
 ```
 [
@@ -53,11 +56,13 @@ These are specific details on each section of the app, and how to use them
 - `webbyBits.py` imports the database, runs all music playing, and accepts all commands from clients
     - Searches return matching songs
     - Accepts Play-Pause and Skip commands
+    - Uses port 19054 by default
 
 ### Client:
-![image](./Screenshot_RAW.png) \
+![image](./Screenshot_MAIN.png) \
 From left to right:
 - The playlist button shows the current queue of songs
+    - The currently playing song is identified, and has the duration listed
 - The play-pause button toggles playing
 - The skip button goes to the next track
 - The search button opens the search screen (pictured)
@@ -65,6 +70,5 @@ From left to right:
     - Server IP allows you to change the ip that the site connects to
     - Alert time changes how long error/confirmation messages are shown for (Default 2s)
     - Party Mode adds new songs to the queue when the queue has only 1 song in it
-    - Volume controls the vlc volume of the connected server
-
-
+    - Volume controls the VLC volume of the connected server
+        - *Because the volume can be controlled in the client, for best usage set your device volume as high as possible and turn it down using this slider*

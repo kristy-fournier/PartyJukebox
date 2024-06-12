@@ -1,0 +1,170 @@
+/* testing */
+
+/* Things that are always visible */
+
+body {
+    background-color: #EEEEEE;
+}
+* {
+    font-family: 'arial';
+}
+.italic {
+    font-style: italic;
+}
+h4 {
+    font-weight: 100;
+}
+.clear{
+    clear: both;
+    display: block;  
+    content: "";
+    width: 100%;  
+  }
+.controls {
+    max-width: 550px;
+    min-width: 300px;
+    position: fixed;
+    width:100%;
+    left: 50%;
+    bottom: 0;
+    margin: 0 auto;
+    background-color:inherit;
+}
+
+.alert {
+    position: fixed;
+    bottom: 10%;
+    width: 100%;
+    text-align: center;
+    z-index: 1000;
+    background-color: #EEEEEEd6;
+}
+
+.settings-button {
+    width: 15%;
+    max-width: 90px;
+    position:fixed;
+    top:0;
+    right:0;
+    margin: 3px;
+    background:inherit;
+    /* This is a circle background for the circle settings button
+    So it can display over other text and such */
+    border-radius: 50%;
+}
+
+.control-button{
+    width:20%;
+    max-width: 110px;
+    margin: auto 2%;
+}
+
+.intro {
+    width: 300px;
+    margin: auto;
+    text-align: center;
+}
+
+/* Songlist stuff */
+.songlist {
+    width: 60%;
+    min-width: 300px;
+    margin:auto auto 150px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.songlist > .item{
+    border: 1px solid #333333;
+    width:30%;
+    max-width: 200px;
+    margin: 5px auto;
+    min-width: 100px;
+    background-color: inherit;
+}
+
+.songlist > .item > img{
+    max-width:200px;
+    width:100%
+}
+
+.songlist > .item > h3, .songlist > .item > h4{
+    margin-left: 2px;
+    margin-right: 2px;
+}
+
+.searchbox-holder {
+    width: 20%;
+    margin: 20px auto 0;
+    min-width: 250px;
+
+}
+.searchbox {
+    width: 65%;
+    margin: 1px;
+}
+.go-search {
+    width: 20%;
+    min-width: 50px;
+}
+/* playlist mode stuff */
+
+.playlist {
+    width: 60%;
+    min-width: 300px;
+    margin:auto auto 150px;
+}
+
+.playlist > .item{
+    border: 1px solid #333333;
+    display: flex;
+    max-width: 50em;
+    min-width: 200px;
+    margin: 5px auto;
+    height: auto;
+}
+
+.playlist > .item > .text {
+    display: inline-block;
+    margin: 0px 3px;
+}
+
+.playlist > .item > img {
+    display: inline-flex;
+    max-width: 100px;
+    width:30%;
+    margin: 0;
+    aspect-ratio: 1/1;
+}
+
+.playlist > .item > .text > * {
+    margin:5% 2px;
+}
+
+/* settings stuff */
+
+.settings {
+    width: 95%;
+    margin: auto auto 150px;
+    max-width: 600px;
+}
+
+.settings > .item {
+    margin-left: 10%;
+    width:fit-content;
+    
+}
+
+.settings > .item:not(:last-child) {
+    padding-bottom: 10px;
+    border-bottom: 1px solid #333333;
+}
+
+.settings > .lastSet1 {
+    border-bottom: 0;
+}
+
+#volumerange {
+    background-color: #4477AA;
+    color: #4477ff;
+}

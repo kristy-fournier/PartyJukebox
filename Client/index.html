@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Jukebox Controller</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json" />
+</head>
+<body>
+    <!--Cookie Popup(does it matter if im not tracking them? i have no idea)-->
+    <script type="text/javascript" src="https://cookieconsent.popupsmart.com/src/js/popper.js"></script><script> window.start.init({Palette:"palette2",Mode:"floating left",Theme:"classic",LinkText:" Learn More!",Message:"This website uses cookies to save necessary data to your device, and no tracking is performed.",Time:"0",})</script>
+    
+    <div class="intro">
+        <h1 id="title">Jukebox Remote</h1>
+        <p>Add songs to the shared playlist below!</p>
+    </div>
+    <h1 class="alert" id="alert"></h1>
+<!-- this is the main body when PICKING songs to add to the playlist,
+changes visibility with JS-->
+    <div class="songlist-mode" id="songlist-mode">
+        <div class="searchbox-holder">
+            <input type="text" autocomplete="off" placeholder="Search" id="songsearch" class="searchbox"><button class="go-search" id="go-search">Go!</button>
+        </div>
+        <div class="songlist" id="songlist">
+            <h1>Search to find songs!</h1>
+            <!-- Placeholder for the song items
+                These are generated using javascript for search
+
+            <div class="item">
+                <img src="search.png"></img>
+                <h3><span>Song title</span></h3>
+                <h4>Artist</h4>
+            </div>
+
+            -->
+            
+        </div>
+    </div>
+<!-- this is the opposite of the thing described above (looking at songs in queue) -->
+    <div class="playlist-mode" id="playlist-mode">
+        <div class="playlist" id="playlist">
+            <h1 id="playlist-alert"></h1>
+            <!-- The template for playlist items
+            <div class="item">
+                <img src="placeholder.png"></img>
+                <h3>Song title</h3>
+                <h4>Artist</h4>
+                <h5>Playing</h5>
+            </div>-->
+        </div>
+    </div>
+<!-- Because settings involves no generation ( all the settings are known), it is filled out always, just dissapears-->
+    <div class="settings-mode" id="settings-mode">
+        <div class="settings" id="settings">
+            <h1 >Client Settings (Saved to device)</h1>
+            <!--
+            <div class="item">
+                <h2 for="darkmode-button">Dark Mode:</h2>
+                <p class="italic">opposite of light mode</p>
+                <button title="darkmode-button" id="darkmode-button">Off</button>
+            </div>
+            -->
+            <div class="item">
+                <h2 for="iptextbox">Server IP:</h2>
+                <p class="italic">IP of the device running the song server</p>
+                <input title="iptextbox" style="width:200px" type="text" id="iptextbox">
+            </div>
+            <div class="item">
+                <h2 for="alerttimetextbox">Alert Time:</h2>
+                <p class="italic">How long alerts stay on screen for (seconds)</p>
+                <input title="alerttimetextbox" style="width:50px" type="text" id="alerttimetextbox" value="2">
+                </div>
+            <h1>Server Settings (Saved to server)</h1>
+            <div class="item">
+                <h2 for="partymode-button">Party Mode:</h2>
+                <p class="italic">Add random songs to the queue when it is about to be empty</p>
+                <button title="partymode-button" id="partymode-button">N/A</button>
+            </div>
+            <div class="item">
+                <h2 for="volumerange">Volume:</h2>
+                <p class="italic">Volume of the music</p>
+                <input type="range" min="0" max="100" step="1" title="volumerange" id="volumerange">
+            </div>
+        </div>
+    </div>
+    <!--All the buttons are down here but settings is just doing its own thing-->
+    <img class="settings-button" id="settings-button" src="./images/settings.png" alt="settings"></img>
+    <div id="controls" class="controls">
+        <img class="control-button" id="playlist-button" src="./images/playlist.png" alt="playlist"></img>
+        <img class="control-button" id="play-pause-button" src="./images/play-pause.png" alt="play pause"></img>
+        <img class="control-button" id="skip-button" src="./images/skip.png" alt="skip"></img>
+        <img class="control-button" id="search-button" src="./images/search.png" alt="search"></img>
+        
+    </div>
+    <script src="scripts.js"></script>
+</body>
+</html>
