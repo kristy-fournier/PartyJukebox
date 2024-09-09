@@ -2,15 +2,17 @@ import os
 from mutagen.easyid3 import EasyID3
 from mutagen.mp3 import MP3
 import requests, ast, time, math, argparse, json
-# place your lastfm key in the slot below
-apikeylastfm="YourLastfmKeyHere"
 
 loading = ["-","\\","|","/"]
 songFiles = os.listdir(r'./sound')
 parser=argparse.ArgumentParser(description="Options for the generation of the song database")
+parser.add_argument('-k','--apikey', help='String: LastFM api key', default="")
 parser.add_argument('-m', '--mode', help='new/update: Remake database or update current', default= "update")
 parser.add_argument('-a', '--art', help="True/False: Add art to the database using LastFm (takes minimum 0.25s per song)", default="True")
 args = parser.parse_args()
+apikeylastfm = args.apikey
+# if you want to set the api key permenantly for your setup just uncomment the next line
+# apikeylastfm = "KeyHere"
 if args.mode == "update":
     try:   
         with open('songDatabase.json', 'r') as handle:
