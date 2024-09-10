@@ -53,7 +53,7 @@ for i in songFiles:
         except:
             title = i
             artist = None
-    if args.art.lower() == "true":
+    if args.art.lower() == "true" and not(args.apikey == ""):
         try:
             image = ast.literal_eval(requests.post(url="http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key="+apikeylastfm+"&artist="+artist+"&track="+title+"&format=json").text)["track"]["album"]["image"][1]["#text"]
             if image == "":

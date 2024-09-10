@@ -1,5 +1,7 @@
 # Party Jukebox
 *This project requires VLC to play sound files*
+
+As always you can use `--help` on any of the python files to see all the properties that can be changed at runtime
 ## Purpose
 The **Party Jukebox** is a program that allows many people to add music, skip songs, play, and pause from any web device to the same device and playlist. \
 This was created for a personal use case for parties, and is a simple, (mostly) functional solution to have a collective playlist for local mp3 files. \
@@ -20,11 +22,12 @@ webbyBits.py
 ```
 
 1. Place mp3 files in the `sound/` folder
-2. Open `databaseGenerator.py` and put your LastFM API key in at the top (*optional*)
+2. Open `databaseGenerator.py` and put your LastFM API key in at the top or at runtime using `-k APIKey` (*optional*)
 3. Run `databaseGenerator.py`
     * *The `databaseGenerator.py` will index all mp3 files, and save the information to `songDatabase.json`*
     * *If getting images, this process may take a long time with a large amount of mp3 files*
 4. Run `webbyBits.py`
+    * *The port can be customized at runtime using* `-p portNumber` *as an atribute*
 
 You can now connect with the client and use the app as normal. \
 *Make sure you have turned down/off any other apps that might make noise or notification sounds* \
@@ -41,6 +44,8 @@ These are specific details on each section of the app, and how to use them
     - Running with `--mode (update/new)` either updates the current database and only adds new songs, or recreates the entire database (update is default)
     - Running with `--art (True/False)` retrieves art from  LastFM or doesn't (True is default)
         - *Can only generate one song / 0.25 seconds, to avoid pinging the LastFM server too much*
+    - Running with `--apikey (KEYhere)` sets the LastFM key for that run
+        - If this is set to an empty string (Default) the app runs in non-art mode
 - `songDatabase.json` stores all the information about each song in this format:
 ```
 [
