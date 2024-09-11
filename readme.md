@@ -1,7 +1,7 @@
 # Party Jukebox
 *This project requires VLC to play sound files*
 
-As always you can use `--help` on any of the python files to see all the properties that can be changed at runtime
+You can use `--help` on any of the python files to see all the properties that can be changed at runtime
 ## Purpose
 The **Party Jukebox** is a program that allows many people to add music, skip songs, play, and pause from any web device to the same device and playlist. \
 This was created for a personal use case for parties, and is a simple, (mostly) functional solution to have a collective playlist for local mp3 files. \
