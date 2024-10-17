@@ -177,6 +177,16 @@ async function checkSettings(skipServer=false) {
     } else {
         document.getElementById("iptextbox").value = ip;
     }
+    let tempURL = "http://" + document.location.href.split("/")[2] + "/?ip=" + ip;
+    document.getElementById("qrcode").innerHTML = ""
+    new QRCode(document.getElementById("qrcode"), {
+        text: tempURL,
+        width: 256,
+        height: 256,
+        colorDark : "#000000",
+        colorLight : "#eeeeee",
+        correctLevel : QRCode.CorrectLevel.H
+    });
     document.getElementById("alerttimetextbox").value = alertTime
     partyButtonState = document.getElementById("partymode-button").innerHTML;
     x = await getFromServer({setting: "getsettings"}, "settings");
@@ -316,12 +326,10 @@ ip = params.get("ip")
 if (ip == null || ip=="") {
     ip=getCookie("ip")
 }
-console.log(ip)
 if (ip==null || ip==""){
     ip = ""
 }
 document.cookie = "ip="+ip+"; path=/;"
-
 
 alertTime = getCookie("alertTime")
 document.getElementById("alerttimetextbox").value = alertTime
@@ -329,3 +337,13 @@ if (alertTime == "") {
     alertTime = 2;
     document.cookie = "alertTime="+alertTime+"; path=/;"
 }
+
+let tempURL = "http://" + document.location.href.split("/")[2] + "/?ip=" + ip;
+new QRCode(document.getElementById("qrcode"), {
+text: tempURL,
+width: 256,
+height: 256,
+colorDark : "#000000",
+colorLight : "#eeeeee",
+correctLevel : QRCode.CorrectLevel.H
+});

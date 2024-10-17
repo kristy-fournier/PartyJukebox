@@ -81,6 +81,11 @@ changes visibility with JS-->
                 <p class="italic">Volume of the music</p>
                 <input type="range" min="0" max="100" step="1" title="volumerange" id="volumerange">
             </div>
+            <div class="item">
+                <h2>Share the remote:</h2>
+                <p class="italic">Hit settings icon to refresh the code</p>
+                <div id="qrcode"></div>
+            </div>
         </div>
     </div>
     <!--All the buttons are down here but settings is just doing its own thing-->
@@ -92,6 +97,7 @@ changes visibility with JS-->
         <img class="control-button" id="search-button" src="./images/search.png" alt="search"></img>
         
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="scripts.js"></script>
 </body>
 </html>
