@@ -1,7 +1,7 @@
 from flask import Flask
 from flask import request
 from flask_cors import CORS
-import json,vlc,csv,threading,time,random, argparse
+import json,vlc,threading,time,random, argparse
 parser=argparse.ArgumentParser(description="Options for the Webby Bits")
 parser.add_argument('-p','--port',help="Pick a port to host on, not the same as the web (client) port",default='19054')
 porttheuserpicked=parser.parse_args().port
