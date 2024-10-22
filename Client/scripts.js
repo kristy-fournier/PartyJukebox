@@ -337,7 +337,7 @@ if (alertTime == "") {
     alertTime = 2;
     document.cookie = "alertTime="+alertTime+"; path=/;"
 }
-
+// this is the code that makes the qr code at the very start
 let tempURL = "http://" + document.location.href.split("/")[2] + "/?ip=" + ip;
 new QRCode(document.getElementById("qrcode"), {
 text: tempURL,
