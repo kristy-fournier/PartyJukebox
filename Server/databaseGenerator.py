@@ -4,15 +4,19 @@ from mutagen.mp3 import MP3
 import requests, ast, time, math, argparse, json
 
 loading = ["-","\\","|","/"]
-songFiles = os.listdir(r'./sound')
+
 parser=argparse.ArgumentParser(description="Options for the generation of the song database")
 parser.add_argument('-k','--apikey', help='String: LastFM api key', default="")
 parser.add_argument('-m', '--mode', help='new/update: Remake database or update current', default= "update")
 parser.add_argument('-a', '--art', help="True/False: Add art to the database using LastFm (takes minimum 0.25s per song)", default="True")
+parser.add_argument('-d','--directory',help="Directory of the song files (USING FORWARD SLASHES)", default="./sound")
 args = parser.parse_args()
 apikeylastfm = args.apikey
-# if you want to set the api key permenantly for your setup just uncomment the next line
+soundLocation = args.directory
+# if you want to set the api key/sound directory permenantly for your setup just uncomment the next line
 # apikeylastfm = "KeyHere"
+# soundLocation = "directoryHere"
+songFiles = os.listdir(soundLocation)
 if args.mode == "update":
     try:   
         with open('songDatabase.json', 'r') as handle:
@@ -42,7 +46,7 @@ if args.art.lower() == "true":
 
 for i in songFiles:
     try:
-        song = EasyID3("sound/"+i)
+        song = EasyID3(soundLocation+"/"+i)
         title = song['title'][0]
         artist = song['artist'][0]
     except:
@@ -66,7 +70,7 @@ for i in songFiles:
     else:
         image=None
     try:
-        length = math.ceil(MP3("sound/"+i).info.length)
+        length = math.ceil(MP3(soundLocation+"/"+i).info.length)
     except:
         length = 0
     if len(songFiles) != 1:

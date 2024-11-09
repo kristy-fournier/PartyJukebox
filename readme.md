@@ -36,7 +36,7 @@ Read on for specific information on each piece of the app.
 ## Details
 These are specific details on each section of the app, and how to use them
 ### Server:
-- `sound/` contains all mp3 files
+- `./sound` contains all mp3 files by default
 - `databaseGenerator.py` scans through mp3 files and gets information about them
     - `Filename, Title, Artist, Art, Length` are all saved 
         - *If the title and artist are not in the mp3 metadata, it looks for a format of* `TITLE_ARTIST.mp3` *and otherwise defaults to the file name as the title, and no artist*
@@ -46,6 +46,10 @@ These are specific details on each section of the app, and how to use them
         - *Can only generate one song / 0.25 seconds, to avoid pinging the LastFM server too much*
     - Running with `--apikey (KEYhere)` sets the LastFM key for that run
         - If this is set to an empty string (Default) the app runs in non-art mode
+    - Running with `--directory (directoryOfmp3s)` allows for sound files to be in a different place
+        - Default `"./sound"`
+        - _This setting might be kinda iffy on Linux. You're on Linux just go and edit it if you have issues_
+        - __Make certain you only use forward slashes in your directory, even on Windows__
 - `songDatabase.json` stores all the information about each song in this format:
 ```
 [
