@@ -36,7 +36,7 @@ Read on for specific information on each piece of the app.
 ## Details
 These are specific details on each section of the app, and how to use them
 ### Server:
-- `./sound` contains all mp3 files by default
+- `sound/` contains all mp3 files by default
 - `databaseGenerator.py` scans through mp3 files and gets information about them
     - `Filename, Title, Artist, Art, Length` are all saved 
         - *If the title and artist are not in the mp3 metadata, it looks for a format of* `TITLE_ARTIST.mp3` *and otherwise defaults to the file name as the title, and no artist*
