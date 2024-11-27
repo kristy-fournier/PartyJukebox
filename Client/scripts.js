@@ -50,7 +50,7 @@ function getCookie(cname) {
     }
     return "";
     }
-//someone more organised than me would have set all these elements to variables so they dont have to get them 50 times
+//someone more organised than me would have set all these html elements to variables so they dont have to get them 50 times
 async function controlButton(buttonType) {
     if (buttonType == "pp") {
         getFromServer({control: "play-pause"}, "controls")
@@ -124,10 +124,10 @@ async function searchSongs(searchTerm){
         newItem.appendChild(head3);
         newItem.appendChild(head4);
         document.getElementById("songlist").appendChild(newItem);
-    //display error if no results
     
     } 
     if (optionslist.length == 0) {
+        //display error if no results
         document.getElementById("songlist").innerHTML = "<h1>We might not have that one...</h1>";
     }
 }
@@ -273,8 +273,9 @@ function checkWhatSongWasClicked(e) {
     if ((itemId.length-itemId.lastIndexOf("image") == 5) && itemId.lastIndexOf("image")!=-1) {
         itemId = itemId.slice(0,-6)
     }
-    //i feel like later dylan won't apreciate this
+    //i feel like later kristy won't apreciate this
     //one of my files was "file.MP3" so it didn't work
+    //windows be like
     if (itemId.slice(-4).toLowerCase() == ".mp3") {
         submitSong(itemId);
     } 
@@ -321,6 +322,7 @@ document.getElementById("controls").style.marginLeft = "-"+String(parseInt(tempW
 //example (http://192.168.1.100:8000/?ip=192.168.1.100:19054 sets the ip to the same host at the default port)
 //the port must be set manually using this method, but only has to be done once for the url that ends up being shared
 let params = new URLSearchParams(location.search);
+
 //tries the url first, then the cookie, then the default
 ip = params.get("ip")
 if (ip == null || ip=="") {
