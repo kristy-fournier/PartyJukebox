@@ -46,19 +46,23 @@ if args.art.lower() == "true":
 
 for i in songFiles:
     try:
+        # get the metadata
         song = EasyID3(soundLocation+"/"+i)
         title = song['title'][0]
         artist = song['artist'][0]
     except:
         try:
+            # if metadata is missing, try to use file name following title_artist.mp3
             song = i.split("_")
             title = song[0]
             artist = song[1].split(".")[0]
         except:
+            #if the file is not formatted with an underscore, the title is the file name
             title = i
             artist = None
     if args.art.lower() == "true" and not(args.apikey == ""):
         try:
+            # get the smallest possible image from lastFM
             image = ast.literal_eval(requests.post(url="http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key="+apikeylastfm+"&artist="+artist+"&track="+title+"&format=json").text)["track"]["album"]["image"][1]["#text"]
             if image == "":
                 image = ast.literal_eval(requests.post(url="http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key="+apikeylastfm+"&artist="+artist+"&track="+title+"&format=json").text)["track"]["album"]["image"][2]["#text"]
