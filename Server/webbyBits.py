@@ -5,7 +5,7 @@ import json,vlc,threading,time,random, argparse
 # Argparse Stuff
 parser=argparse.ArgumentParser(description="Options for the Webby Bits")
 parser.add_argument('-p','--port',help="Pick a port to host on, not the same as the web (client) port",default='19054')
-porttheuserpicked=parser.parse_args().port
+portTheUserPicked=parser.parse_args().port
 #Initializing all the global stuff
 random.seed()
 global partyMode
@@ -132,6 +132,8 @@ def getPlaylist():
     # what went through my head to make past-me think this is a good idea???
     # i mean actually looping through once still shouldn't ever take that long 
     # but like a binary search must exist in python and be faster
+    # wait no binary search only helps if they're sorted
+    # i mean i guess i could sort them and make searching faster
     for k in songDatabaseList:
         if k["file"] == songNext:
             temp = k.copy()
@@ -141,11 +143,14 @@ def getPlaylist():
     for i in playlist:
         # oh my goodness i did it again
         # i seriously need to rewrite the databaseGenerator and this code
+        # wait isn't this literally useless code???
+        # oh no the playlist only contains names
+        # i should really have used an object for this.
         for j in songDatabaseList:
             if j["file"] ==  i:
                 tempPlaylist.append(j)
     return tempPlaylist
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=porttheuserpicked)
+    app.run(host='0.0.0.0', port=portTheUserPicked)
     
