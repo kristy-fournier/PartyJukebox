@@ -9,10 +9,15 @@ parser=argparse.ArgumentParser(description="Options for the generation of the so
 parser.add_argument('-k','--apikey', help='String: LastFM api key', default="")
 parser.add_argument('-m', '--mode', help='new/update: Remake database or update current', default= "update")
 parser.add_argument('-a', '--art', help="True/False: Add art to the database using LastFm (takes minimum 0.25s per song)", default="True")
-parser.add_argument('-d','--directory',help="Directory of the song files (USING FORWARD SLASHES)", default="./sound")
+parser.add_argument('-d','--directory',help="Directory of the song files", default="./sound/")
 args = parser.parse_args()
 apikeylastfm = args.apikey
-soundLocation = args.directory
+if args.directory[-1] == "/" or args.directory[-1] == "\\":
+    soundLocation = args.directory
+elif "/" in args.directory:
+    soundLocation = args.directory + "/"
+else:
+    soundLocation = args.directory + "\\"
 # if you want to set the api key/sound directory permenantly for your setup just uncomment the next line
 # apikeylastfm = "KeyHere"
 # soundLocation = "directoryHere"
@@ -29,8 +34,7 @@ if args.mode == "update":
             songFiles.index(i["file"]) != -1
         except:
             print("deleted: " + i["file"] + " from database")
-            songDatabaseList.pop(songDatabaseList.index(i))
-            
+            songDatabaseList.remove(i)
     for i in songDatabaseList:
         songFiles.pop(songFiles.index(i["file"]))
     print("new songs: " + str(songFiles))
@@ -47,7 +51,7 @@ if args.art.lower() == "true":
 for i in songFiles:
     try:
         # get the metadata
-        song = EasyID3(soundLocation+"/"+i)
+        song = EasyID3(soundLocation+i)
         title = song['title'][0]
         artist = song['artist'][0]
     except:
@@ -62,10 +66,10 @@ for i in songFiles:
             artist = None
     if args.art.lower() == "true" and not(args.apikey == ""):
         try:
-            # get the smallest possible image from lastFM
-            image = ast.literal_eval(requests.post(url="http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key="+apikeylastfm+"&artist="+artist+"&track="+title+"&format=json").text)["track"]["album"]["image"][1]["#text"]
+            # get the images from last fm, try 2 different sizes
+            image = ast.literal_eval(requests.post(url="http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key="+apikeylastfm+"&artist="+artist+"&track="+title+"&format=json").text)["track"]["album"]["image"][2]["#text"]
             if image == "":
-                image = ast.literal_eval(requests.post(url="http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key="+apikeylastfm+"&artist="+artist+"&track="+title+"&format=json").text)["track"]["album"]["image"][2]["#text"]
+                image = ast.literal_eval(requests.post(url="http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key="+apikeylastfm+"&artist="+artist+"&track="+title+"&format=json").text)["track"]["album"]["image"][1]["#text"]
                 if image == "":
                     image = None
             time.sleep(0.25)
@@ -74,7 +78,7 @@ for i in songFiles:
     else:
         image=None
     try:
-        length = math.ceil(MP3(soundLocation+"/"+i).info.length)
+        length = math.ceil(MP3(soundLocation+i).info.length)
     except:
         length = 0
     if len(songFiles) != 1:

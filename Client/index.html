@@ -19,7 +19,7 @@
 changes visibility with JS-->
     <div class="songlist-mode" id="songlist-mode">
         <div class="searchbox-holder">
-            <input type="text" autocomplete="off" placeholder="Search" id="songsearch" class="searchbox"><button class="go-search" id="go-search">Go!</button>
+            <input type="text" autocomplete="off" placeholder="Search" id="songsearch"  enterkeyhint="Search" class="searchbox"><button class="go-search" id="go-search">Go!</button>
         </div>
         <div class="songlist" id="songlist">
             <h1>Search to find songs!</h1>
@@ -52,7 +52,7 @@ changes visibility with JS-->
 <!-- Because settings involves no generation ( all the settings are known), it is filled out always, just dissapears-->
     <div class="settings-mode" id="settings-mode">
         <div class="settings" id="settings">
-            <h1 >Client Settings (Saved to device)</h1>
+            <h1>Client Settings (Saved to device)</h1>
             <!--
             <div class="item">
                 <h2 for="darkmode-button">Dark Mode:</h2>
@@ -63,12 +63,12 @@ changes visibility with JS-->
             <div class="item">
                 <h2 for="iptextbox">Server IP:</h2>
                 <p class="italic">IP of the device running the song server</p>
-                <input title="iptextbox" style="width:200px" type="text" id="iptextbox">
+                <input title="iptextbox" style="width:200px" type="text" id="iptextbox" enterkeyhint="Done">
             </div>
             <div class="item">
                 <h2 for="alerttimetextbox">Alert Time:</h2>
                 <p class="italic">How long alerts stay on screen for (seconds)</p>
-                <input title="alerttimetextbox" style="width:50px" type="text" id="alerttimetextbox" value="2">
+                <input title="alerttimetextbox" style="width:50px" type="text" id="alerttimetextbox" value="2" enterkeyhint="Done">
                 </div>
             <h1>Server Settings (Saved to server)</h1>
             <div class="item">
@@ -84,7 +84,7 @@ changes visibility with JS-->
             <div class="item">
                 <h2>Share the remote:</h2>
                 <p class="italic">Hit settings icon to refresh the code</p>
-                <div id="qrcode"></div>
+                <div id="qrcode" alt="QR code to the remote URL"></div>
             </div>
         </div>
     </div>

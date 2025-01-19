@@ -4,8 +4,18 @@ from flask_cors import CORS
 import json,vlc,threading,time,random, argparse
 # Argparse Stuff
 parser=argparse.ArgumentParser(description="Options for the Webby Bits")
-parser.add_argument('-p','--port',help="Pick a port to host on, not the same as the web (client) port",default='19054')
+parser.add_argument('-d','--directory',help="Directory of the song files", default="./sound/")
+parser.add_argument('-p','--port',help="Port to host on, not the same as the web (client) port",default='19054')
 portTheUserPicked=parser.parse_args().port
+soundLocation = parser.parse_args().directory
+# To set the directory permenantly just uncomment the next line
+# soundLocation = "/example/directory/here/"
+if soundLocation[-1] == "/" or soundLocation[-1] == "\\":
+    pass
+elif "/" in soundLocation:
+    soundLocation += "/"
+else:
+    soundLocation += "\\"
 #Initializing all the global stuff
 random.seed()
 global partyMode
@@ -47,15 +57,12 @@ def playQueuedSongs():
                 media = fakeplayer.media_new("sound/"+songNext)
                 player.set_media(media)
                 player.play()
-            elif (len(playlist) == 0) and skipNow==True:
+            elif (skipNow==True or (z == "State.Ended" or z == "State.NothingSpecial" or z=="State.Stopped")):
                 # skip was pressed and there are no new songs
                 skipNow=False
                 songNext = None
                 player.stop()
-            elif (len(playlist) == 0) and (z == "State.Ended" or z == "State.NothingSpecial" or z=="State.Stopped"):
-                # i feel like this could actually be combined with the above, but imma not do that rn
-                songNext = None
-            elif (len(playlist)<1) and (partyMode == True):
+            elif len(playlist)<1 and (partyMode == True):
                 # adds the random songs for party mode
                 # the above 2 means this only applies if (a song is playing (or paused)) and the queue is empty
                 playlist.append(random.choice(songDatabaseList)["file"])
