@@ -1,5 +1,12 @@
 /* testing */
 
+.dark-mode {
+    background-color: #333333;
+    color:#ffffff; 
+    /* -webkit-filter:invert(100%);
+    filter:progid:DXImageTransform.Microsoft.BasicImage(invert='1'); */
+}
+
 /* Things that are always visible */
 
 body {

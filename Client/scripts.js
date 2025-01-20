@@ -280,6 +280,17 @@ function checkWhatSongWasClicked(e) {
         submitSong(itemId);
     } 
 }
+function toggleDark(e) {
+    let x = document.getElementById("test-body").classList
+    if (!(x.contains("dark-mode"))) {
+        document.getElementById("darkmode-button").innerHTML = "On"
+        x.add("dark-mode");
+    } else {
+        document.getElementById("darkmode-button").innerHTML = "Off"
+        x.remove("dark-mode");
+    }
+    
+}
 
 let optionslist = []
 
@@ -317,6 +328,7 @@ document.getElementById("songlist").addEventListener('click', function(e){checkW
 //makes the controls look mostly normal on all screens, best solution i could find, idk man
 let tempWidth = document.getElementById('controls').clientWidth;
 document.getElementById("controls").style.marginLeft = "-"+String(parseInt(tempWidth/2))+"px";
+document.getElementById("darkmode-button").addEventListener('click',function(){toggleDark()})
 //for my use case (my immediate family), they dont know how to set an ip
 //using this allows the creator of the link for, a qr code for example, to set the ip before distributing the code, and it would all work smoothly
 //example (http://192.168.1.100:8000/?ip=192.168.1.100:19054 sets the ip to the same host at the default port)
