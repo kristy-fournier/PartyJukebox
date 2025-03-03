@@ -23,7 +23,7 @@ async function getFromServer(bodyInfo, source="") {
         return await data;
     } catch(e) {
         if (e == "TypeError: Failed to fetch"){
-            alertText("error: NoConnect to Server (is the ip set?)")
+            alertText("error: Can't Connect to Server (is the ip set?)")
         } else {
             alertText("error: " + e)
         }
