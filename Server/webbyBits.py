@@ -4,7 +4,7 @@ from flask_cors import CORS
 import json,vlc,threading,time,random, argparse
 # Argparse Stuff
 parser=argparse.ArgumentParser(description="Options for the Webby Bits")
-parser.add_argument('-d','--directory',help="Directory of the song files", default="./sound/")
+parser.add_argument('-d','--directory',help="Directory of the song files (make sure this matches the directory used for the databaseGenerator)", default="./sound/")
 parser.add_argument('-p','--port',help="Port to host on, not the same as the web (client) port",default='19054')
 portTheUserPicked=parser.parse_args().port
 soundLocation = parser.parse_args().directory
@@ -118,6 +118,7 @@ def searchSongDB():
     tempData = {}
     for i in songDatabaseList:
         if ((i["title"].lower().find(recieveData['search'].lower())) > -1) or (recieveData['search'] == ""):
+            # In future i would change this to index based on the filename so that it is definately unique
             tempData[i["title"]] = [i["artist"],i["art"],i["file"]]
         try:
             if (i["artist"].lower().find(recieveData['search'].lower()) > -1):
