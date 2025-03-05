@@ -27,20 +27,19 @@ if args.mode == "update":
         with open('songDatabase.json', 'r') as handle:
             songDatabaseList = json.load(handle)
     except:
-        songDatabaseList=[]
+        songDatabaseList={"songDirectory":soundLocation,'songData':{}}
 
-    for i in songDatabaseList:
+    for i in songDatabaseList["songData"]:
         try:
-            songFiles.index(i["file"]) != -1
+            songFiles.index(i) != -1
         except:
-            print("deleted: " + i["file"] + " from database")
+            print("deleted: " + i + " from database")
             songDatabaseList.remove(i)
-    for i in songDatabaseList:
-        songFiles.pop(songFiles.index(i["file"]))
+    for i in songDatabaseList["songData"]:
+        songFiles.remove(i)
     print("new songs: " + str(songFiles))
 elif args.mode=="new":
-    songDatabaseList = []
-
+    songDatabaseList={"songDirectory":soundLocation,'songData':{}}
 if args.art.lower() == "true":
     x = len(songFiles)*0.25
     if x > 60:
@@ -85,7 +84,7 @@ for i in songFiles:
         index = (songFiles.index(i))%4
         print("\r" + str(loading[index] + str(math.floor((songFiles.index(i)/(len(songFiles)-1))*100))+ "%"), end='', flush=True)
     # each "song" is stored as a dictionary containing the below stuff, and each dictionary is put into a list
-    songDatabaseList.append({"file":i,"title":title,"artist":artist,"art":image,"length":length})
+    songDatabaseList["songData"][i] = ({"title":title,"artist":artist,"art":image,"length":length})
     
 with open('songDatabase.json', 'w') as handle:
     json.dump(songDatabaseList, handle)

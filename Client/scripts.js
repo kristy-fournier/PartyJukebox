@@ -98,35 +98,33 @@ async function searchSongs(searchTerm){
 
     document.getElementById("songlist").innerHTML = ""
     searchResults = await getFromServer({search:searchTerm},"search").then()
-    for (let index in searchResults) {
-        optionslist.push([index,searchResults[index][0],searchResults[index][1],searchResults[index][2]]);
-    }
     //generate the visual song list
-    for(let i = 0; i < optionslist.length; i++) {
+    for(var fileName in searchResults) {
+        let currentSongInJSON = searchResults[fileName]
         let newItem = document.createElement("div");
         newItem.className = "item";
-        newItem.id = optionslist[i][3];
+        newItem.id = fileName;
         let image = document.createElement("img");
         try {
-            if (optionslist[i][2] == null) {
+            if (currentSongInJSON["art"] == null) {
                 throw "no image lolz"
             }
-            image.src = optionslist[i][2];
+            image.src = currentSongInJSON["art"];
         } catch(err){
             image.src = "./images/placeholder.png";
         }
-        image.id = String(optionslist[i][3])+" image";
+        image.id = String(fileName)+" image";
         let head3 = document.createElement("h3");
-        head3.innerText = optionslist[i][0];
+        head3.innerText = currentSongInJSON["title"];
         let head4 = document.createElement("h4");
-        head4.innerText=optionslist[i][1];
+        head4.innerText = currentSongInJSON["artist"];
         newItem.appendChild(image);
         newItem.appendChild(head3);
         newItem.appendChild(head4);
         document.getElementById("songlist").appendChild(newItem);
     
     } 
-    if (optionslist.length == 0) {
+    if (searchResults.length == 0) {
         //display error if no results
         document.getElementById("songlist").innerHTML = "<h1>We might not have that one...</h1>";
     }
@@ -207,6 +205,11 @@ async function checkSettings(skipServer=false) {
 async function generateVisualPlaylist(conditions="") {
     document.getElementById("playlist").innerHTML = "<h1 id=\"playlist-alert\"></h1>";
     playlist = await getFromServer(null, "playlist");
+    playlist = Object.values(playlist).map(obj => {
+        const filename = Object.keys(obj)[0]; // Get the filename
+        const songData = obj[filename]; // Get the song metadata
+        return { filename, ...songData }; // Merge filename with song data
+      });
     if (playlist.length==0){
         document.getElementById("playlist-alert").innerHTML = "Nothing's Queued..."
     } else {
@@ -216,10 +219,11 @@ async function generateVisualPlaylist(conditions="") {
                 document.getElementById("playlist-alert").innerHTML = "Nothing's Queued..."
             }
         }
-        for (i in playlist) {
+        for (let i in playlist) {
+            let fileName = playlist[i]["filename"]
             let newItem = document.createElement("div");
             newItem.className = "item";
-            newItem.id = playlist[i]["file"];
+            newItem.id = fileName;
             let image = document.createElement("img");
             try {
                 if (playlist[i]["art"] == null) {
@@ -229,7 +233,7 @@ async function generateVisualPlaylist(conditions="") {
             } catch(err){
                 image.src = "./images/placeholder.png";
             }
-            image.id = String(playlist[i]["file"])+" image";
+            image.id = String(fileName)+" image";
             let head3 = document.createElement("h3");
             head3.innerText = playlist[i]["title"];
             let head4 = document.createElement("h4");
@@ -249,6 +253,7 @@ async function generateVisualPlaylist(conditions="") {
                     }
                 }
             }catch(err){
+                // i dont know why there's a try catch here but i'm leaving it i dont want to break something
                 console.log(err)
             }
             let textdiv = document.createElement("div")

@@ -4,12 +4,16 @@ from flask_cors import CORS
 import json,vlc,threading,time,random, argparse
 # Argparse Stuff
 parser=argparse.ArgumentParser(description="Options for the Webby Bits")
-parser.add_argument('-d','--directory',help="Directory of the song files (make sure this matches the directory used for the databaseGenerator)", default="./sound/")
+# this is no longer needed assuming my file works correctly with the generator
+# parser.add_argument('-d','--directory',help="Directory of the song files (make sure this matches the directory used for the databaseGenerator)", default="./sound/")
 parser.add_argument('-p','--port',help="Port to host on, not the same as the web (client) port",default='19054')
 portTheUserPicked=parser.parse_args().port
-soundLocation = parser.parse_args().directory
-# To set the directory permenantly just uncomment the next line
-# soundLocation = "/example/directory/here/"
+
+# open the json file as a dictionary
+with open('./songDatabase.json', 'r') as handle:
+    songDatabaseList = json.load(handle)
+soundLocation = songDatabaseList["songDirectory"]
+
 if soundLocation[-1] == "/" or soundLocation[-1] == "\\":
     pass
 elif "/" in soundLocation:
@@ -33,9 +37,6 @@ player.audio_set_volume(100)
 app = Flask(__name__)
 # because you are posting from another domain to this one, you need CORS
 CORS(app)
-# open the json file as a dictionary
-with open('./songDatabase.json', 'r') as handle:
-    songDatabaseList = json.load(handle)
 
 def queueSong(song):
     with playlistLock:
@@ -116,16 +117,16 @@ def searchSongDB():
     # the way i put the data in a list was really dumb looking back, i could and should have used a list of dictioaries like i was before
     # i might try to change it but this layout is embedded deep in the client
     tempData = {}
-    for i in songDatabaseList:
-        if ((i["title"].lower().find(recieveData['search'].lower())) > -1) or (recieveData['search'] == ""):
-            # In future i would change this to index based on the filename so that it is definately unique
-            tempData[i["title"]] = [i["artist"],i["art"],i["file"]]
+    for i in songDatabaseList["songData"]:
+        if ((songDatabaseList["songData"][i]["title"].lower().find(recieveData['search'].lower())) > -1) or (recieveData['search'] == ""):
+            tempData[i] = songDatabaseList["songData"][i]
+            
         try:
-            if (i["artist"].lower().find(recieveData['search'].lower()) > -1):
-                tempData[i["title"]] = [i["artist"],i["art"],i["file"]]
+            if (songDatabaseList["songData"][i]["artist"].lower().find(recieveData['search'].lower()) > -1):
+                tempData[i] = songDatabaseList["songData"][i]
         except:
             pass
-    
+    # print(tempData)
     return tempData
 
 @app.route("/songadd", methods=["POST"])
@@ -137,26 +138,16 @@ def songadd():
 def getPlaylist():
     global songNext
     tempPlaylist = []
-    # what went through my head to make past-me think this is a good idea???
-    # i mean actually looping through once still shouldn't ever take that long 
-    # but like a binary search must exist in python and be faster
-    # wait no binary search only helps if they're sorted
-    # i mean i guess i could sort them and make searching faster
-    for k in songDatabaseList:
-        if k["file"] == songNext:
-            temp = k.copy()
-            temp["playing"] = True
-            temp["time"] = player.get_time()/1000
-            tempPlaylist.append(temp)
+    if songNext != None:
+        # Adds the currently playing song
+        k = songDatabaseList["songData"][songNext]
+        temp = k.copy()
+        temp["playing"] = True
+        temp["time"] = player.get_time()/1000
+        tempPlaylist.append({songNext:temp})
     for i in playlist:
-        # oh my goodness i did it again
-        # i seriously need to rewrite the databaseGenerator and this code
-        # wait isn't this literally useless code???
-        # oh no the playlist only contains names
-        # i should really have used an object for this.
-        for j in songDatabaseList:
-            if j["file"] ==  i:
-                tempPlaylist.append(j)
+        tempPlaylist.append({i:songDatabaseList["songData"][i]})
+    # print(tempPlaylist)
     return tempPlaylist
 
 if __name__ == "__main__":
