@@ -210,7 +210,6 @@ async function generateVisualPlaylist(conditions="") {
         const songData = obj[filename]; // Get the song metadata
         return { filename, ...songData }; // Merge filename with song data
       });
-    console.log(playlist)
     if (playlist.length==0){
         document.getElementById("playlist-alert").innerHTML = "Nothing's Queued..."
     } else {
@@ -221,7 +220,6 @@ async function generateVisualPlaylist(conditions="") {
             }
         }
         for (let i in playlist) {
-            console.log(i)
             let fileName = playlist[i]["filename"]
             let newItem = document.createElement("div");
             newItem.className = "item";
@@ -255,6 +253,7 @@ async function generateVisualPlaylist(conditions="") {
                     }
                 }
             }catch(err){
+                // i dont know why there's a try catch here but i'm leaving it i dont want to break something
                 console.log(err)
             }
             let textdiv = document.createElement("div")
@@ -276,7 +275,6 @@ async function submitSong(songid) {
 }
 function checkWhatSongWasClicked(e) {
     itemId = e.srcElement.id;
-    console.log(itemId)
     if ((itemId.length-itemId.lastIndexOf("image") == 5) && itemId.lastIndexOf("image")!=-1) {
         itemId = itemId.slice(0,-6)
     }
