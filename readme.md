@@ -49,18 +49,19 @@ These are specific details on each section of the app, and how to use them
     - Running with `--directory (directoryOfmp3s)` allows for sound files to be in a different place
         - Default `"./sound"`
         - _This setting might be kinda iffy on Linux. You're on Linux just go and edit it if you have issues_
-        - __Make certain you only use forward slashes in your directory, even on Windows__
+        - ~~__Make certain you only use forward slashes in your directory, even on Windows__~~ I think this should be fine now i'll check later
 - `songDatabase.json` stores all the information about each song in this format:
 ```
-[
-    {
-    "file": "The Search_NF.mp3", 
-    "title": "The Search", 
-    "artist": "NF", 
-    "art": "https://lastfm.freetls.fastly.net/i/u/64s/03125956378d531a44e1b7da89aae795.png", 
-    "length": 292
+{
+    "songDirectory": "./sound/", 
+    "songData": {
+        "Circus_Fox Szn.mp3": 
+        {"title": "Circus", 
+        "artist": "Fox Szn", 
+        "art": null, 
+        "length": 141}
     }
-]
+}
 ```
 - `webbyBits.py` imports the database, runs all music playing, and accepts all commands from clients
     - Searches return matching songs
