@@ -98,35 +98,33 @@ async function searchSongs(searchTerm){
 
     document.getElementById("songlist").innerHTML = ""
     searchResults = await getFromServer({search:searchTerm},"search").then()
-    for (let index in searchResults) {
-        optionslist.push([index,searchResults[index][0],searchResults[index][1],searchResults[index][2]]);
-    }
     //generate the visual song list
-    for(let i = 0; i < optionslist.length; i++) {
+    for(var fileName in searchResults) {
+        let currentSongInJSON = searchResults[fileName]
         let newItem = document.createElement("div");
         newItem.className = "item";
-        newItem.id = optionslist[i][3];
+        newItem.id = fileName;
         let image = document.createElement("img");
         try {
-            if (optionslist[i][2] == null) {
+            if (currentSongInJSON["art"] == null) {
                 throw "no image lolz"
             }
-            image.src = optionslist[i][2];
+            image.src = currentSongInJSON["art"];
         } catch(err){
             image.src = "./images/placeholder.png";
         }
-        image.id = String(optionslist[i][3])+" image";
+        image.id = String(fileName)+" image";
         let head3 = document.createElement("h3");
-        head3.innerText = optionslist[i][0];
+        head3.innerText = currentSongInJSON["title"];
         let head4 = document.createElement("h4");
-        head4.innerText=optionslist[i][1];
+        head4.innerText = currentSongInJSON["artist"];
         newItem.appendChild(image);
         newItem.appendChild(head3);
         newItem.appendChild(head4);
         document.getElementById("songlist").appendChild(newItem);
     
     } 
-    if (optionslist.length == 0) {
+    if (searchResults.length == 0) {
         //display error if no results
         document.getElementById("songlist").innerHTML = "<h1>We might not have that one...</h1>";
     }
@@ -211,29 +209,30 @@ async function generateVisualPlaylist(conditions="") {
         document.getElementById("playlist-alert").innerHTML = "Nothing's Queued..."
     } else {
         if (conditions=="skip-button") {
-            playlist.shift()
+            delete playlist[0]
             if (playlist.length==0){
                 document.getElementById("playlist-alert").innerHTML = "Nothing's Queued..."
             }
         }
-        for (i in playlist) {
+        for (let i in playlist) {
+            let fileName = Object.keys(playlist[i])[0]
             let newItem = document.createElement("div");
             newItem.className = "item";
-            newItem.id = playlist[i]["file"];
+            newItem.id = fileName;
             let image = document.createElement("img");
             try {
-                if (playlist[i]["art"] == null) {
+                if (playlist[i][fileName]["art"] == null) {
                     throw "no image lolz"
                 }
-                image.src = playlist[i]["art"];
+                image.src = playlist[i][fileName]["art"];
             } catch(err){
                 image.src = "./images/placeholder.png";
             }
-            image.id = String(playlist[i]["file"])+" image";
+            image.id = String(fileName)+" image";
             let head3 = document.createElement("h3");
-            head3.innerText = playlist[i]["title"];
+            head3.innerText = playlist[i][fileName]["title"];
             let head4 = document.createElement("h4");
-            head4.innerText=playlist[i]["artist"];
+            head4.innerText=playlist[i][fileName]["artist"];
             let head5 = document.createElement("h5");
             let timeLeft =document.createElement("h5");
             timeLeft.style.fontWeight = 100;
@@ -241,10 +240,10 @@ async function generateVisualPlaylist(conditions="") {
                 if (i == 0) {
                     head5.innerHTML="Playing";
                     if ((conditions != "skip-button")) {
-                        let mins = Math.floor(playlist[i]["time"]/60);
-                        let secs = Math.floor(playlist[i]["time"]%60);
-                        let durMins = Math.floor(playlist[i]["length"]/60);
-                        let durSecs = Math.floor(playlist[i]["length"]%60);
+                        let mins = Math.floor(playlist[i][fileName]["time"]/60);
+                        let secs = Math.floor(playlist[i][fileName]["time"]%60);
+                        let durMins = Math.floor(playlist[i][fileName]["length"]/60);
+                        let durSecs = Math.floor(playlist[i][fileName]["length"]%60);
                         timeLeft.innerHTML = mins.toString() +":"+ secs.toLocaleString('en-US', {minimumIntegerDigits: 2,useGrouping: false}) + "/"+ durMins.toString()+":"+durSecs.toLocaleString('en-US', {minimumIntegerDigits: 2,useGrouping: false});
                     }
                 }
@@ -270,6 +269,7 @@ async function submitSong(songid) {
 }
 function checkWhatSongWasClicked(e) {
     itemId = e.srcElement.id;
+    console.log(itemId)
     if ((itemId.length-itemId.lastIndexOf("image") == 5) && itemId.lastIndexOf("image")!=-1) {
         itemId = itemId.slice(0,-6)
     }
