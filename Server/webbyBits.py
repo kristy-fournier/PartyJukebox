@@ -126,7 +126,7 @@ def searchSongDB():
                 tempData[i] = songDatabaseList["songData"][i]
         except:
             pass
-    print(tempData)
+    # print(tempData)
     return tempData
 
 @app.route("/songadd", methods=["POST"])
@@ -147,7 +147,7 @@ def getPlaylist():
         tempPlaylist.append({songNext:temp})
     for i in playlist:
         tempPlaylist.append({i:songDatabaseList["songData"][i]})
-    print(tempPlaylist)
+    # print(tempPlaylist)
     return tempPlaylist
 
 if __name__ == "__main__":
