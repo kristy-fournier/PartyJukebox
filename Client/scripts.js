@@ -205,34 +205,41 @@ async function checkSettings(skipServer=false) {
 async function generateVisualPlaylist(conditions="") {
     document.getElementById("playlist").innerHTML = "<h1 id=\"playlist-alert\"></h1>";
     playlist = await getFromServer(null, "playlist");
+    playlist = Object.values(playlist).map(obj => {
+        const filename = Object.keys(obj)[0]; // Get the filename
+        const songData = obj[filename]; // Get the song metadata
+        return { filename, ...songData }; // Merge filename with song data
+      });
+    console.log(playlist)
     if (playlist.length==0){
         document.getElementById("playlist-alert").innerHTML = "Nothing's Queued..."
     } else {
         if (conditions=="skip-button") {
-            delete playlist[0]
+            playlist.shift()
             if (playlist.length==0){
                 document.getElementById("playlist-alert").innerHTML = "Nothing's Queued..."
             }
         }
         for (let i in playlist) {
-            let fileName = Object.keys(playlist[i])[0]
+            console.log(i)
+            let fileName = playlist[i]["filename"]
             let newItem = document.createElement("div");
             newItem.className = "item";
             newItem.id = fileName;
             let image = document.createElement("img");
             try {
-                if (playlist[i][fileName]["art"] == null) {
+                if (playlist[i]["art"] == null) {
                     throw "no image lolz"
                 }
-                image.src = playlist[i][fileName]["art"];
+                image.src = playlist[i]["art"];
             } catch(err){
                 image.src = "./images/placeholder.png";
             }
             image.id = String(fileName)+" image";
             let head3 = document.createElement("h3");
-            head3.innerText = playlist[i][fileName]["title"];
+            head3.innerText = playlist[i]["title"];
             let head4 = document.createElement("h4");
-            head4.innerText=playlist[i][fileName]["artist"];
+            head4.innerText=playlist[i]["artist"];
             let head5 = document.createElement("h5");
             let timeLeft =document.createElement("h5");
             timeLeft.style.fontWeight = 100;
@@ -240,10 +247,10 @@ async function generateVisualPlaylist(conditions="") {
                 if (i == 0) {
                     head5.innerHTML="Playing";
                     if ((conditions != "skip-button")) {
-                        let mins = Math.floor(playlist[i][fileName]["time"]/60);
-                        let secs = Math.floor(playlist[i][fileName]["time"]%60);
-                        let durMins = Math.floor(playlist[i][fileName]["length"]/60);
-                        let durSecs = Math.floor(playlist[i][fileName]["length"]%60);
+                        let mins = Math.floor(playlist[i]["time"]/60);
+                        let secs = Math.floor(playlist[i]["time"]%60);
+                        let durMins = Math.floor(playlist[i]["length"]/60);
+                        let durSecs = Math.floor(playlist[i]["length"]%60);
                         timeLeft.innerHTML = mins.toString() +":"+ secs.toLocaleString('en-US', {minimumIntegerDigits: 2,useGrouping: false}) + "/"+ durMins.toString()+":"+durSecs.toLocaleString('en-US', {minimumIntegerDigits: 2,useGrouping: false});
                     }
                 }
