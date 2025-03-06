@@ -97,10 +97,11 @@ def playerControls():
 def settingsControl():
     # set the volume and partymode
     global partyMode
+    global player
     recieveData = request.get_json(force=True)
     if recieveData["setting"] == "volume":
-        player.audio_set_volume(int(recieveData["level"]))
-        return "200"
+        volumePassed = player.audio_set_volume(int(recieveData["level"]))
+        return {"volumePassed":volumePassed}
     elif recieveData["setting"] == "partymode-toggle":
         partyMode = not(partyMode)
         return "200"
@@ -117,15 +118,18 @@ def searchSongDB():
     # the way i put the data in a list was really dumb looking back, i could and should have used a list of dictioaries like i was before
     # i might try to change it but this layout is embedded deep in the client
     tempData = {}
-    for i in songDatabaseList["songData"]:
-        if ((songDatabaseList["songData"][i]["title"].lower().find(recieveData['search'].lower())) > -1) or (recieveData['search'] == ""):
-            tempData[i] = songDatabaseList["songData"][i]
-            
-        try:
-            if (songDatabaseList["songData"][i]["artist"].lower().find(recieveData['search'].lower()) > -1):
+    if (recieveData['search'] == ""):
+        tempData = songDatabaseList["songData"].copy()
+    else:
+        for i in songDatabaseList["songData"]:
+            if ((songDatabaseList["songData"][i]["title"].lower().find(recieveData['search'].lower())) > -1):
                 tempData[i] = songDatabaseList["songData"][i]
-        except:
-            pass
+                
+            try:
+                if (songDatabaseList["songData"][i]["artist"].lower().find(recieveData['search'].lower()) > -1):
+                    tempData[i] = songDatabaseList["songData"][i]
+            except:
+                pass
     # print(tempData)
     return tempData
 

@@ -170,6 +170,7 @@ function ipSetter(){
 async function checkSettings(skipServer=false) {
     //check client stuff first so if the server doesn't exist it can still be changed and seen
     if (ip.slice(-5)=="19054") {
+        // don't show the port if it is the default
         document.getElementById("iptextbox").value = ip.slice(0,-6)
     } else {
         document.getElementById("iptextbox").value = ip;
@@ -309,8 +310,12 @@ document.getElementById("playlist-mode").style.display = "none";
 document.getElementById("settings-mode").style.display = "none";
 //.ontouch for mobile??
 document.getElementById("volumerange").onchange = function() {
-    getFromServer({setting:"volume",level:this.value}, "settings")
-    if (this.value == 0) {
+    let returnValue = getFromServer({setting:"volume",level:this.value}, "settings")
+    if (returnValue !=0) {
+        alertText("Nothing is playing")
+        document.getElementById("volumerange").value = -1
+    }
+    else if (this.value == 0) {
         alertText("The volume is now set to 0 (Pause?)")
     } else {
         alertText("The volume is now set to " + this.value.toString())
