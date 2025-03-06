@@ -172,6 +172,13 @@ h4 {
     border-bottom: 0;
 }
 
+.versionNumber {
+    font-size: 8px;
+    font-style: italic;
+    text-align: left;
+    width: 80%;
+}
+
 #volumerange {
     background-color: #4477AA;
     color: #4477ff;

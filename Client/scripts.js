@@ -164,17 +164,11 @@ function ipSetter(){
             alertText("Your IP is now set to "+ipBox+" at port 19054 (Default)")
         }
     }
+    qrCodeGenerate()
         
 }
 
-async function checkSettings(skipServer=false) {
-    //check client stuff first so if the server doesn't exist it can still be changed and seen
-    if (ip.slice(-5)=="19054") {
-        // don't show the port if it is the default
-        document.getElementById("iptextbox").value = ip.slice(0,-6)
-    } else {
-        document.getElementById("iptextbox").value = ip;
-    }
+function qrCodeGenerate() {
     let tempURL = "http://" + document.location.href.split("/")[2] + "/?ip=" + ip;
     document.getElementById("qrcode").innerHTML = ""
     new QRCode(document.getElementById("qrcode"), {
@@ -185,6 +179,17 @@ async function checkSettings(skipServer=false) {
         colorLight : "#eeeeee",
         correctLevel : QRCode.CorrectLevel.H
     });
+}
+
+async function checkSettings(skipServer=false) {
+    //check client stuff first so if the server doesn't exist it can still be changed and seen
+    if (ip.slice(-5)=="19054") {
+        // don't show the port if it is the default
+        document.getElementById("iptextbox").value = ip.slice(0,-6)
+    } else {
+        document.getElementById("iptextbox").value = ip;
+    }
+    qrCodeGenerate()
     document.getElementById("alerttimetextbox").value = alertTime
     partyButtonState = document.getElementById("partymode-button").innerHTML;
     x = await getFromServer({setting: "getsettings"}, "settings");
@@ -361,12 +366,4 @@ if (alertTime == "") {
     document.cookie = "alertTime="+alertTime+"; path=/;"
 }
 // this is the code that makes the qr code at the very start
-let tempURL = "http://" + document.location.href.split("/")[2] + "/?ip=" + ip;
-new QRCode(document.getElementById("qrcode"), {
-text: tempURL,
-width: 256,
-height: 256,
-colorDark : "#000000",
-colorLight : "#eeeeee",
-correctLevel : QRCode.CorrectLevel.H
-});
+qrCodeGenerate()
