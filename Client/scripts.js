@@ -95,7 +95,6 @@ function searchSongsEnter(e) {
 
 async function searchSongs(searchTerm){
     let optionslist = []
-
     document.getElementById("songlist").innerHTML = ""
     searchResults = await getFromServer({search:searchTerm},"search").then()
     //generate the visual song list
@@ -124,7 +123,7 @@ async function searchSongs(searchTerm){
         document.getElementById("songlist").appendChild(newItem);
     
     } 
-    if (searchResults.length == 0) {
+    if (JSON.stringify(searchResults)==JSON.stringify({})) {
         //display error if no results
         document.getElementById("songlist").innerHTML = "<h1>We might not have that one...</h1>";
     }
