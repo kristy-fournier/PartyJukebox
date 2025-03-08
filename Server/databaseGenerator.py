@@ -30,11 +30,15 @@ if args.mode == "update":
         songDatabaseList={"songDirectory":soundLocation,'songData':{}}
 
     for i in songDatabaseList["songData"]:
+        deleteySongs = []
         try:
             songFiles.index(i) != -1
         except:
-            print("deleted: " + i + " from database")
-            songDatabaseList.remove(i)
+            deleteySongs.append(i)
+    if deleteySongs:
+        print("deleted: " + ", ".join(deleteySongs)+ " from database")
+    for i in deleteySongs:
+        songDatabaseList["songData"].pop(i)
     for i in songDatabaseList["songData"]:
         songFiles.remove(i)
     print("new songs: " + str(songFiles))
