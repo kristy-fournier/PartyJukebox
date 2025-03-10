@@ -115,8 +115,6 @@ def settingsControl():
 @app.route("/search", methods=['POST'])
 def searchSongDB():
     recieveData=request.get_json(force=True)
-    # the way i put the data in a list was really dumb looking back, i could and should have used a list of dictioaries like i was before
-    # i might try to change it but this layout is embedded deep in the client
     tempData = {}
     if (recieveData['search'] == ""):
         tempData = songDatabaseList["songData"].copy()
