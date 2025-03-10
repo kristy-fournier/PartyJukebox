@@ -22,17 +22,17 @@ else:
 # apikeylastfm = "KeyHere"
 # soundLocation = "directoryHere"
 songFiles = os.listdir(soundLocation)
-if args.mode == "update":
+if args.mode.lower() == "update":
     try:   
         with open('songDatabase.json', 'r') as handle:
             songDatabaseList = json.load(handle)
     except:
         songDatabaseList={"songDirectory":soundLocation,'songData':{}}
-
+    deleteySongs = []
     for i in songDatabaseList["songData"]:
-        deleteySongs = []
         try:
-            songFiles.index(i) != -1
+            if songFiles.index(i) == -1:
+                deleteySongs.append(i)
         except:
             deleteySongs.append(i)
     if deleteySongs:
@@ -41,11 +41,12 @@ if args.mode == "update":
         songDatabaseList["songData"].pop(i)
     for i in songDatabaseList["songData"]:
         songFiles.remove(i)
-    print("new songs: " + str(songFiles))
-elif args.mode=="new":
+    print("new songs: " + ", ".join(songFiles))
+elif args.mode.lower()=="new":
     songDatabaseList={"songDirectory":soundLocation,'songData':{}}
-
-if args.art.lower() == "true":
+else:
+    raise ValueError("Must be \"new\" or \"update\"")
+if args.art.lower() == "true" and not(args.apikey == ""):
     x = len(songFiles)*0.25
     if x > 60:
         print("ETA "+ str(x/60) + " minutes")
@@ -53,6 +54,9 @@ if args.art.lower() == "true":
         print("ETA "+ str(x) + " seconds")
 
 for i in songFiles:
+    if i[-4].lower() != ".mp3":
+        # skip any non-mp3's (like directories or cover art)
+        continue
     try:
         # get the metadata
         song = EasyID3(soundLocation+i)
