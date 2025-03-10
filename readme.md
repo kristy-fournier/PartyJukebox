@@ -41,13 +41,13 @@ These are specific details on each section of the app, and how to use them
     - `Filename, Title, Artist, Art, Length` are all saved 
         - *If the title and artist are not in the mp3 metadata, it looks for a format of* `TITLE_ARTIST.mp3` *and otherwise defaults to the file name as the title, and no artist*
         - Art is retrieved from LastFM
-    - Running with `--mode (update/new)` either updates the current database and only adds new songs, or recreates the entire database (update is default)
+    - Running with `--mode (update/new)` either updates the current database and adds new songs/removes deleted songs, or recreates the entire database (update is default, and is faster in art mode)
     - Running with `--art (True/False)` retrieves art from  LastFM or doesn't (True is default)
         - *Can only generate one song / 0.25 seconds, to avoid pinging the LastFM server too much*
     - Running with `--apikey (KEYhere)` sets the LastFM key for that run
         - If this is set to an empty string (Default) the app runs in non-art mode
     - Running with `--directory (directoryOfmp3s)` allows for sound files to be in a different place
-        - Default `"./sound"`
+        - Default `"./sound/"`
         - _This setting might be kinda iffy on Linux. You're on Linux just go and edit it if you have issues_
         - ~~__Make certain you only use forward slashes in your directory, even on Windows__~~ I think this should be fine now i'll check later
 - `songDatabase.json` stores all the information about each song in this format:
