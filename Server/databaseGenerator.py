@@ -44,6 +44,7 @@ if args.mode == "update":
     print("new songs: " + str(songFiles))
 elif args.mode=="new":
     songDatabaseList={"songDirectory":soundLocation,'songData':{}}
+
 if args.art.lower() == "true":
     x = len(songFiles)*0.25
     if x > 60:
