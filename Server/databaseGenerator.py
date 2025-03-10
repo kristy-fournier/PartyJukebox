@@ -54,7 +54,7 @@ if args.art.lower() == "true" and not(args.apikey == ""):
         print("ETA "+ str(x) + " seconds")
 
 for i in songFiles:
-    if i[-4].lower() != ".mp3":
+    if i[-4:].lower() != ".mp3":
         # skip any non-mp3's (like directories or cover art)
         continue
     try:
