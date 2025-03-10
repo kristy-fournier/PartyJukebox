@@ -7,7 +7,8 @@ loading = ["-","\\","|","/"]
 
 parser=argparse.ArgumentParser(description="Options for the generation of the song database")
 parser.add_argument('-k','--apikey', help='String: LastFM api key', default="")
-parser.add_argument('-m', '--mode', help='new/update: Remake database or update current', default= "update")
+# parser.add_argument('-m', '--mode', help='new/update: Remake database or update current', default= "update")
+parser.add_argument('-m', '--mode', help='new mode required temporarily', default= "new")
 parser.add_argument('-a', '--art', help="True/False: Add art to the database using LastFm (takes minimum 0.25s per song)", default="True")
 parser.add_argument('-d','--directory',help="Directory of the song files", default="./sound/")
 args = parser.parse_args()
