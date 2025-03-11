@@ -69,7 +69,7 @@ changes visibility with JS-->
                 <h2 for="alerttimetextbox">Alert Time:</h2>
                 <p class="italic">How long alerts stay on screen for (seconds)</p>
                 <input title="alerttimetextbox" style="width:50px" type="text" id="alerttimetextbox" value="2" enterkeyhint="Done">
-                </div>
+            </div>
             <h1>Server Settings (Saved to server)</h1>
             <div class="item">
                 <h2 for="partymode-button">Party Mode:</h2>
@@ -81,12 +81,13 @@ changes visibility with JS-->
                 <p class="italic">Volume of the music</p>
                 <input type="range" min="0" max="100" step="1" title="volumerange" id="volumerange">
             </div>
-            <div class="item">
+            <div class="item no-line">
                 <h2>Share the remote:</h2>
-                <p class="italic">Hit settings icon to refresh the code</p>
+                <!-- <p class="italic">Hit settings icon to refresh the code</p>
+                 You actually no longer need to do that, it does it anytime the ip changes -->
                 <div id="qrcode" alt="QR code to the remote URL"></div>
             </div>
-            <p class="versionNumber">Version 1.0.0</p>
+            <p class="versionNumber">Version 1.0.1</p>
         </div>
     </div>
     <!--All the buttons are down here but settings is just doing its own thing-->

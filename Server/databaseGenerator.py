@@ -41,6 +41,8 @@ if args.mode.lower() == "update":
         songDatabaseList["songData"].pop(i)
     for i in songDatabaseList["songData"]:
         songFiles.remove(i)
+    # This prints everything in the directory, including non mp3s
+    # theres not agood way to fix this without looping again.
     print("new songs: " + ", ".join(songFiles))
 elif args.mode.lower()=="new":
     songDatabaseList={"songDirectory":soundLocation,'songData':{}}

@@ -168,6 +168,11 @@ h4 {
     border-bottom: 1px solid #333333;
 }
 
+.settings > .item.no-line {
+    border-bottom: 0px none #00000000;
+    padding-bottom: 0px;
+}
+
 .settings > .lastSet1 {
     border-bottom: 0;
 }

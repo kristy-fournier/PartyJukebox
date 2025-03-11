@@ -1,6 +1,7 @@
 {
     "name": "Jukebox Remote",
     "short_name": "Jukebox Remote",
+    "description": "Controller for the PartyJukebox server app.",
     "start_url": "index.html",
     "display": "standalone",
     "background_color": "#eeeeee",
@@ -10,6 +11,25 @@
       {
         "src": "/favicon.ico",
         "type": "image/ico", "sizes": "100x100"
+      },
+      {
+        "src":"images/Icon-144.png",
+        "type": "image/png",
+        "sizes": "144x144"
+      }
+    ],
+    "screenshots": [
+      {
+        "src": "images/Screenshot-Main-Desktop.png",
+        "sizes" : "1919x1199",
+        "type": "image/png",
+        "form_factor": "wide"
+      },
+      {
+        "src": "images/Screenshot-Main-Mobile.png",
+        "type": "image/png",
+        "sizes": "485x859",
+        "form_factor": "narrow"
       }
     ]
   }
