@@ -67,7 +67,7 @@ These are specific details on each section of the app, and how to use them
     - Searches return matching songs
     - Accepts Play-Pause and Skip commands
     - Uses port 19054 by default
-        - `--port (port)` changes the default port for that run
+        - `--port (port)` changes the port for that run
         - The default port can be changed in the file
 
 ### Client:
