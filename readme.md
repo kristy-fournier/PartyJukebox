@@ -85,3 +85,5 @@ From left to right:
     - Volume controls the VLC volume of the connected server
         - *Because the volume can be controlled in the client, for best usage set your device volume as high as possible and turn it down using this slider*
     - QR code to allow others to connect to and use the Remote
+
+*See `LICENSE.md` for redistribution details.
