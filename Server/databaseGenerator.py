@@ -1,6 +1,7 @@
 import os
 from mutagen.easyid3 import EasyID3
 from mutagen.mp3 import MP3
+import sqlite3 as sql
 import requests, ast, time, math, argparse, json
 
 loading = ["-","\\","|","/"]
@@ -22,32 +23,35 @@ else:
 # apikeylastfm = "KeyHere"
 # soundLocation = "directoryHere"
 songFiles = os.listdir(soundLocation)
+fileOfDB = sql.connect("songDatabase.db")
+songDatabase = fileOfDB.cursor()
+# setting song directory
+songDatabase.execute("CREATE TABLE IF NOT EXISTS meta (id TEXT PRIMARY KEY, data TEXT);")
+try:
+    songDatabase.execute("INSERT INTO meta (id, data) VALUES (?,?)",("songDirectory",soundLocation))
+except:
+    songDatabase.execute("UPDATE meta SET data = ? WHERE id = 'songDirectory'", (soundLocation,))
 if args.mode.lower() == "update":
-    try:   
-        with open('songDatabase.json', 'r') as handle:
-            songDatabaseList = json.load(handle)
-    except:
-        songDatabaseList={"songDirectory":soundLocation,'songData':{}}
-    deleteySongs = []
-    for i in songDatabaseList["songData"]:
-        try:
-            if songFiles.index(i) == -1:
-                deleteySongs.append(i)
-        except:
-            deleteySongs.append(i)
-    if deleteySongs:
-        print("deleted: " + ", ".join(deleteySongs)+ " from database")
-    for i in deleteySongs:
-        songDatabaseList["songData"].pop(i)
-    for i in songDatabaseList["songData"]:
-        songFiles.remove(i)
-    # This prints everything in the directory, including non mp3s
-    # theres not agood way to fix this without looping again.
+    #Create if not exists
+    songDatabase.execute("CREATE TABLE IF NOT EXISTS songs (filename TEXT PRIMARY KEY, title TEXT, artist TEXT, art TEXT, length INTEGER);")
+    songDatabase.execute("SELECT filename FROM songs;")
+    dBfilelist = songDatabase.fetchall()
+    dBfilelistSet = set()
+    for i in dBfilelist:
+        dBfilelistSet.add(i[0])
+    # Delete nonexistant files
+    deleteySongs = list(dBfilelistSet - set(songFiles))
+    songDatabase.executemany("DELETE FROM songs WHERE filename = ?", [(item,) for item in deleteySongs]) # in this line it turns the list of strings into a list of tuples of strings
+    print("Deleted: " + ", ".join(deleteySongs)+ " from database")
+    # only include new files in list to be used
+    songFiles = list(set(songFiles) - dBfilelistSet)
     print("new songs: " + ", ".join(songFiles))
 elif args.mode.lower()=="new":
-    songDatabaseList={"songDirectory":soundLocation,'songData':{}}
+    songDatabase.execute("DROP TABLE IF EXISTS songs;")
+    songDatabase.execute("CREATE TABLE songs (filename TEXT PRIMARY KEY, title TEXT, artist TEXT, art TEXT, length INTEGER);")
 else:
     raise ValueError("Must be \"new\" or \"update\"")
+
 if args.art.lower() == "true" and not(args.apikey == ""):
     x = len(songFiles)*0.25
     if x > 60:
@@ -95,7 +99,8 @@ for i in songFiles:
         index = (songFiles.index(i))%4
         print("\r" + str(loading[index] + str(math.floor((songFiles.index(i)/(len(songFiles)-1))*100))+ "%"), end='', flush=True)
     # each "song" is stored as a dictionary/JSON entry following the format seen in the readME
-    songDatabaseList["songData"][i] = ({"title":title,"artist":artist,"art":image,"length":length})
-    
-with open('songDatabase.json', 'w') as handle:
-    json.dump(songDatabaseList, handle)
+    songDatabase.execute(f"INSERT INTO songs (filename, title, artist, art, length) VALUES (?,?,?,?,?)",(i,title,artist,image,length))
+
+
+
+fileOfDB.commit()

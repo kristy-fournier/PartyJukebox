@@ -1,3 +1,4 @@
 server/sound/
 server/songDatabase.json
+*.db
 start.bat
