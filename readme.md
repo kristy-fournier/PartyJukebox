@@ -24,7 +24,7 @@ webbyBits.py
 1. Place mp3 files in the `sound/` folder
 2. Open `databaseGenerator.py` and put your LastFM API key in at the top or at runtime using `-k APIKey` (*optional*)
 3. Run `databaseGenerator.py`
-    * *The `databaseGenerator.py` will index all mp3 files, and save the information to `songDatabase.json`*
+    * *The `databaseGenerator.py` will index all mp3 files, and save the information to `songDatabase.db`*
     * *If getting images, this process may take a long time with a large amount of mp3 files*
 4. Run `webbyBits.py`
     * *The port can be customized at runtime using* `-p portNumber` *as an atribute*
@@ -39,7 +39,7 @@ These are specific details on each section of the app, and how to use them
 - `sound/` contains all mp3 files by default
 - `databaseGenerator.py` scans through mp3 files and gets information about them
     - `Filename, Title, Artist, Art, Length` are all saved 
-        - *If the title and artist are not in the mp3 metadata, it looks for a format of* `TITLE_ARTIST.mp3` *and otherwise defaults to the file name as the title, and no artist*
+        - *If the title and artist are not in the mp3 metadata, it looks for a format of* `TITLE_ARTIST.mp3` *then of* `ARTIST - TITLE.mp3` *and otherwise defaults to the file name as the title, and no artist*
         - Art is retrieved from LastFM
     - Running with `--mode (update/new)` either updates the current database and adds new songs/removes deleted songs, or recreates the entire database (update is default, and is faster in art mode)
     - Running with `--art (True/False)` retrieves art from  LastFM or doesn't (True is default)
@@ -50,19 +50,7 @@ These are specific details on each section of the app, and how to use them
         - Default `"./sound/"`
         - _This setting might be kinda iffy on Linux. You're on Linux just go and edit it if you have issues_
         - ~~__Make certain you only use forward slashes in your directory, even on Windows__~~ I think this should be fine now i'll check later
-- `songDatabase.json` stores all the information about each song in this format:
-```
-{
-    "songDirectory": "./sound/", 
-    "songData": {
-        "Circus_Fox Szn.mp3": 
-        {"title": "Circus", 
-        "artist": "Fox Szn", 
-        "art": null, 
-        "length": 141}
-    }
-}
-```
+- `songDatabase.db` stores all the information about each song in a SQLite database with tables `songs` and `meta`
 - `webbyBits.py` imports the database, runs all music playing, and accepts all commands from clients
     - Searches return matching songs
     - Accepts Play-Pause and Skip commands
