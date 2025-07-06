@@ -23,6 +23,7 @@ elif "/" in soundLocation:
     soundLocation += "/"
 else:
     soundLocation += "\\"
+print(soundLocation)
 #Create Virtual table for searching
 songDatabase.execute("DROP TABLE virtualSongs;")
 songDatabase.execute("CREATE VIRTUAL TABLE virtualSongs USING fts5(filename, title, artist, art, length);")
@@ -64,7 +65,7 @@ def playQueuedSongs():
                 player.stop()
                 skipNow = False
                 songNext = playlist.pop(0)
-                media = fakeplayer.media_new("sound/"+songNext)
+                media = fakeplayer.media_new(soundLocation+songNext)
                 player.set_media(media)
                 player.play()
             elif (skipNow==True or (z == "State.Ended" or z == "State.NothingSpecial" or z=="State.Stopped")):
