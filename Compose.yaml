@@ -1,0 +1,19 @@
+name: party-jukebox
+
+services:
+  pj-client:
+    build: ./client
+    ports:
+      - ${CLIENT_PORT:-80}:80
+  pj-db-builder:
+    # tbd
+  pj-server:
+    build: ./server
+    depends_on:
+      pj-db-builder:
+        condition: service_completed_successfully
+    ports:
+      - ${SERVER_PORT:-19054}:19054
+    volumes:
+      - ${SOUND_LOCATION}:/sound
+      - ${DB_LOCATION}:/db

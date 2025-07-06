@@ -8,9 +8,11 @@ parser=argparse.ArgumentParser(description="Options for the Webby Bits")
 # this is no longer needed assuming my file works correctly with the generator
 # parser.add_argument('-d','--directory',help="Directory of the song files (make sure this matches the directory used for the databaseGenerator)", default="./sound/")
 parser.add_argument('-p','--port',help="Port to host on, not the same as the web (client) port",default='19054')
-portTheUserPicked=parser.parse_args().port
+parser.add_argument('-b','--database',help="Location of the .db file",default='.')
+args = parser.parse_args()
+portTheUserPicked=args.port
 
-fileofDB = sql.connect("songDatabase.db")
+fileofDB = sql.connect(args.database+"/songDatabase.db")
 songDatabase = fileofDB.cursor()
 
 #song directory

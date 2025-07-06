@@ -11,19 +11,21 @@ parser.add_argument('-k','--apikey', help='String: LastFM api key', default="")
 parser.add_argument('-m', '--mode', help='new/update: Remake database or update current', default= "update")
 parser.add_argument('-a', '--art', help="True/False: Add art to the database using LastFm (takes minimum 0.25s per song)", default="True")
 parser.add_argument('-d','--directory',help="Directory of the song files", default="./sound/")
+parser.add_argument('-b','--database',help="Location of the .db file",default='.')
 args = parser.parse_args()
 apikeylastfm = args.apikey
-if args.directory[-1] == "/" or args.directory[-1] == "\\":
-    soundLocation = args.directory
-elif "/" in args.directory:
-    soundLocation = args.directory + "/"
-else:
-    soundLocation = args.directory + "\\"
+soundLocation = args.directory
+# if args.directory[-1] == "/" or args.directory[-1] == "\\":
+#     soundLocation = args.directory
+# elif "/" in args.directory:
+#     soundLocation = args.directory + "/"
+# else:
+#     soundLocation = args.directory + "\\"
 # if you want to set the api key/sound directory permenantly for your setup just uncomment the next line
 # apikeylastfm = "KeyHere"
 # soundLocation = "directoryHere"
 songFiles = os.listdir(soundLocation)
-fileOfDB = sql.connect("songDatabase.db")
+fileOfDB = sql.connect(args.database+"/songDatabase.db")
 songDatabase = fileOfDB.cursor()
 # setting song directory
 songDatabase.execute("CREATE TABLE IF NOT EXISTS meta (id TEXT PRIMARY KEY, data TEXT);")
