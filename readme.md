@@ -39,7 +39,7 @@ These are specific details on each section of the app, and how to use them
 - `sound/` contains all mp3 files by default
 - `databaseGenerator.py` scans through mp3 files and gets information about them
     - `Filename, Title, Artist, Art, Length` are all saved 
-        - *If the title and artist are not in the mp3 metadata, it looks for a format of* `TITLE_ARTIST.mp3` *and otherwise defaults to the file name as the title, and no artist*
+        - *If the title and artist are not in the mp3 metadata, it looks for a format of* `TITLE_ARTIST.mp3` *then of* `ARTIST - TITLE.mp3` *and otherwise defaults to the file name as the title, and no artist*
         - Art is retrieved from LastFM
     - Running with `--mode (update/new)` either updates the current database and adds new songs/removes deleted songs, or recreates the entire database (update is default, and is faster in art mode)
     - Running with `--art (True/False)` retrieves art from  LastFM or doesn't (True is default)

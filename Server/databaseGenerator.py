@@ -69,12 +69,19 @@ for i in songFiles:
         title = song['title'][0]
         artist = song['artist'][0]
     except:
-        try:
+        if "_" in i:
             # if metadata is missing, try to use file name following title_artist.mp3
             song = i.split("_")
             title = song[0]
             artist = song[1].split(".")[0]
-        except:
+        elif "-" in i:
+            # if there's no underscore, try artist - title.mp3
+            song = i.split("-")
+            title = song[1].split(".")[0]
+            artist = song[0]
+            title = title.strip()
+            artist = artist.strip()
+        else:
             #if the file is not formatted with an underscore, the title is the file name
             title = i
             artist = None
