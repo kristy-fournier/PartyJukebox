@@ -73,9 +73,13 @@ def playQueuedSongs():
                 songNext = None
                 player.stop()
             elif len(playlist)<1 and (partyMode == True):
+                fileofDB = sql.connect("songDatabase.db")
+                songDatabase = fileofDB.cursor()
+                songDatabase.execute("SELECT * FROM songs ORDER BY RANDOM() LIMIT 1;")
+                result = songDatabase.fetchall()
                 # adds the random songs for party mode
                 # the above 2 means this only applies if (a song is playing (or paused)) and the queue is empty
-                playlist.append(random.choice(songDatabaseList)["file"])
+                playlist.append(result[0][0])
         # check for new songs every second
         # I just didn't want to eat too much processing looping  
         time.sleep(1)
@@ -174,7 +178,7 @@ def getPlaylist():
         tempPlaylist.append({songNext:temp})
     for i in playlist:
         songDatabase.execute("SELECT * FROM songs WHERE filename = ?",[i])
-        result = songDatabase.fetchall()
+        result = songDatabase.fetchall()[0]
         k = {
             "title": result[1],
             "artist": result[2],
