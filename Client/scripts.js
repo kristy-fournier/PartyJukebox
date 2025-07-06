@@ -314,9 +314,9 @@ document.addEventListener('keydown', function(e){
 document.getElementById("playlist-mode").style.display = "none";
 document.getElementById("settings-mode").style.display = "none";
 //.ontouch for mobile??
-document.getElementById("volumerange").onchange = function() {
-    let returnValue = getFromServer({setting:"volume",level:this.value}, "settings")
-    if (returnValue !=0) {
+document.getElementById("volumerange").onchange = async function() {
+    let returnValue = await getFromServer({setting:"volume",level:this.value}, "settings")
+    if (returnValue["volumePassed"] !=0) {
         alertText("Nothing is playing")
         document.getElementById("volumerange").value = -1
     }

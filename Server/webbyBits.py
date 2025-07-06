@@ -1,7 +1,8 @@
 from flask import Flask
 from flask import request
 from flask_cors import CORS
-import json,vlc,threading,time,random, argparse
+import sqlite3 as sql
+import vlc,threading,time,random, argparse
 # Argparse Stuff
 parser=argparse.ArgumentParser(description="Options for the Webby Bits")
 # this is no longer needed assuming my file works correctly with the generator
@@ -9,10 +10,12 @@ parser=argparse.ArgumentParser(description="Options for the Webby Bits")
 parser.add_argument('-p','--port',help="Port to host on, not the same as the web (client) port",default='19054')
 portTheUserPicked=parser.parse_args().port
 
-# open the json file as a dictionary
-with open('./songDatabase.json', 'r') as handle:
-    songDatabaseList = json.load(handle)
-soundLocation = songDatabaseList["songDirectory"]
+fileofDB = sql.connect("songDatabase.db")
+songDatabase = fileofDB.cursor()
+
+#song directory
+songDatabase.execute("SELECT * FROM meta WHERE id='songDirectory';")
+soundLocation = songDatabase.fetchall()[0][1]
 
 if soundLocation[-1] == "/" or soundLocation[-1] == "\\":
     pass
@@ -20,6 +23,12 @@ elif "/" in soundLocation:
     soundLocation += "/"
 else:
     soundLocation += "\\"
+#Create Virtual table for searching
+songDatabase.execute("DROP TABLE virtualSongs;")
+songDatabase.execute("CREATE VIRTUAL TABLE virtualSongs USING fts5(filename, title, artist, art, length);")
+songDatabase.execute("INSERT INTO virtualSongs SELECT * FROM songs;")
+fileofDB.commit()
+fileofDB.close()
 #Initializing all the global stuff
 random.seed()
 global partyMode
@@ -115,21 +124,27 @@ def settingsControl():
 @app.route("/search", methods=['POST'])
 def searchSongDB():
     recieveData=request.get_json(force=True)
-    tempData = {}
+    fileofDB = sql.connect("songDatabase.db")
+    songDatabase = fileofDB.cursor()
+    results = []
     if (recieveData['search'] == ""):
-        tempData = songDatabaseList["songData"].copy()
+        songDatabase.execute("SELECT * FROM virtualSongs")
+        results = songDatabase.fetchall()
     else:
-        for i in songDatabaseList["songData"]:
-            if ((songDatabaseList["songData"][i]["title"].lower().find(recieveData['search'].lower())) > -1):
-                tempData[i] = songDatabaseList["songData"][i]
-                
-            try:
-                if (songDatabaseList["songData"][i]["artist"].lower().find(recieveData['search'].lower()) > -1):
-                    tempData[i] = songDatabaseList["songData"][i]
-            except:
-                pass
+        songDatabase.execute("SELECT * FROM virtualSongs WHERE virtualSongs MATCH ?",[recieveData['search']])
+        results = songDatabase.fetchall()
+    tempdata = {}
+    # this is a temporary solution so i dont have to change the 
+    for i in results:
+        tempdata[i[0]] = {
+            "title": i[1],
+            "artist": i[2],
+            "art": i[3],
+            "length": i[4]
+        }
     # print(tempData)
-    return tempData
+    fileofDB.close()
+    return tempdata
 
 @app.route("/songadd", methods=["POST"])
 def songadd():
@@ -139,17 +154,36 @@ def songadd():
 @app.route("/playlist", methods=["POST"])
 def getPlaylist():
     global songNext
+    fileofDB = sql.connect("songDatabase.db")
+    songDatabase = fileofDB.cursor()
     tempPlaylist = []
     if songNext != None:
         # Adds the currently playing song
-        k = songDatabaseList["songData"][songNext]
+        songDatabase.execute("SELECT * FROM songs WHERE filename = ?",[songNext])
+        result = songDatabase.fetchall()[0]
+        # again, this is still using the old JSON format to avoid client changes
+        k = {
+            "title": result[1],
+            "artist": result[2],
+            "art": result[3],
+            "length": result[4]
+        }
         temp = k.copy()
         temp["playing"] = True
         temp["time"] = player.get_time()/1000
         tempPlaylist.append({songNext:temp})
     for i in playlist:
-        tempPlaylist.append({i:songDatabaseList["songData"][i]})
+        songDatabase.execute("SELECT * FROM songs WHERE filename = ?",[i])
+        result = songDatabase.fetchall()
+        k = {
+            "title": result[1],
+            "artist": result[2],
+            "art": result[3],
+            "length": result[4]
+        }
+        tempPlaylist.append({i:k})
     # print(tempPlaylist)
+    fileofDB.close()
     return tempPlaylist
 
 if __name__ == "__main__":

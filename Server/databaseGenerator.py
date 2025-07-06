@@ -2,7 +2,7 @@ import os
 from mutagen.easyid3 import EasyID3
 from mutagen.mp3 import MP3
 import sqlite3 as sql
-import requests, ast, time, math, argparse, json
+import requests, ast, time, math, argparse
 
 loading = ["-","\\","|","/"]
 
