@@ -192,6 +192,14 @@ async function checkSettings(skipServer=false) {
     qrCodeGenerate()
     document.getElementById("alerttimetextbox").value = alertTime
     partyButtonState = document.getElementById("partymode-button").innerHTML;
+    checksforadmin = document.getElementById("admincheckholder")
+    // temporary
+    for (let i in checksforadmin.children) {
+        if (i.type == "checkbox") {
+            i.checked = true;
+        }
+    }
+    //ping the server here
     x = await getFromServer({setting: "getsettings"}, "settings");
     if (!(skipServer) || partyButtonState=="N/A") {
         if (x["partymode"] == false) {

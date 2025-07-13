@@ -81,13 +81,30 @@ changes visibility with JS-->
                 <p class="italic">Volume of the music</p>
                 <input type="range" min="0" max="100" step="1" title="volumerange" id="volumerange">
             </div>
-            <div class="item no-line">
+            <div class="item">
                 <h2>Share the remote:</h2>
                 <!-- <p class="italic">Hit settings icon to refresh the code</p>
                  You actually no longer need to do that, it does it anytime the ip changes -->
                 <div id="qrcode" alt="QR code to the remote URL"></div>
             </div>
-            <p class="versionNumber">Version 1.0.2</p>
+            <h1>Admin Settings</h1>
+            <p class="italic">Note: Admin password must have been set from the server</p>
+            <div class="item">
+                <h2>Admin Password:</h2>
+                <p class="italic">Enter to use admin restricted functions</p>
+                <input placeholder="Wordpass12" title="Admin password box" id="adminpasswordbox"> 
+            </div>
+            <div class=item>
+                <h2>Fine action control:</h2>
+                <p class="italic">A check means that action is avalible to everyone</p>
+                <div id="admincheckholder">
+                    <input type="checkbox" title="addsongcheck" id="addsongsettingcheckbox"><label for="addsongcheck">Add songs to queue</label><br>
+                    <input type="checkbox" title="skipsongcheck" id="skipsongsettingcheckbox"><label for="skipsongcheck">Skip songs</label><br>
+                    <input type="checkbox" title="playpausecheck" id="playpausesettingcheckbox"><label for="playpausecheck">Play/pause</label><br>
+                    <input type="checkbox" title="partymodecheck" id="partymodesettingscheckbox"><label for="partymodecheck">Toggle Party Mode</label><br>
+                    <input type="checkbox" title="volumechangecheck" id="volumechangesettingcheckbox"><label for="volumechangecheck">Change volume</label><br>
+                </div>
+            </div>
             <p class="versionNumber">PartyJukebox is under an <a href="https://github.com/kristy-fournier/PartyJukebox/blob/main/LICENSE.md">AGPLV3</a> liscense. You can access the source code <a href=https://github.com/kristy-fournier/PartyJukebox>here</a>.</p>
         </div>
     </div>
