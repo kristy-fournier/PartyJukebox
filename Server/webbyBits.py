@@ -8,7 +8,20 @@ parser=argparse.ArgumentParser(description="Options for the Webby Bits")
 # this is no longer needed assuming my file works correctly with the generator
 # parser.add_argument('-d','--directory',help="Directory of the song files (make sure this matches the directory used for the databaseGenerator)", default="./sound/")
 parser.add_argument('-p','--port',help="Port to host on, not the same as the web (client) port",default='19054')
-portTheUserPicked=parser.parse_args().port
+parser.add_argument('-a','--admin',help="Add an admin password to be used in the client. DO NOT use a password you use elsewhere",default="")
+args = parser.parse_args()
+portTheUserPicked=args.port
+ADMIN_PASS = args.admin
+if not(ADMIN_PASS):
+    ADMIN_PASS = None
+# True = everyone, False = admin only. Change in client while in use. 
+controlPerms = {
+    "PP":True,
+    "SK":True,
+    "AS":True,
+    "PM":True,
+    "VOL":True
+}
 
 fileofDB = sql.connect("songDatabase.db")
 songDatabase = fileofDB.cursor()
@@ -119,9 +132,16 @@ def settingsControl():
     elif recieveData["setting"] == "partymode-toggle":
         partyMode = not(partyMode)
         return "200"
+    elif recieveData["setting"] == "perms":
+        if ADMIN_PASS == recieveData["password"] and ADMIN_PASS:
+            controlPerms = recieveData["admin"]
+            return "200"
+        else:
+            return "401"
+
     elif recieveData["setting"] == "getsettings":
         # probably should have made this a different request type or something but it works
-        x = {"partymode":partyMode,"volume":player.audio_get_volume()}
+        x = {"partymode":partyMode,"volume":player.audio_get_volume(),"admin":controlPerms}
         return x
     else:
         return "400"
@@ -154,8 +174,17 @@ def searchSongDB():
 @app.route("/songadd", methods=["POST"])
 def songadd():
     recieveData=request.get_json(force=True)
-    queueSong(recieveData['song'])
-    return "200"
+    if ADMIN_PASS and ADMIN_PASS == recieveData['password']:
+        # Pass exists and is correct
+        queueSong(recieveData['song'])
+        return "200"
+    elif ADMIN_PASS and not(controlPerms["AS"]):
+        # Pass exists, or this action isn't restricted 
+        return "401"
+    else:
+        # No pass
+        queueSong(recieveData['song'])
+        return "200"
 @app.route("/playlist", methods=["POST"])
 def getPlaylist():
     global songNext
