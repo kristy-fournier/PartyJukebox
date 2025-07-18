@@ -16,11 +16,11 @@ if not(ADMIN_PASS):
     ADMIN_PASS = None
 # True = everyone, False = admin only. Change in client while in use. 
 controlPerms = {
-    "PP":True,
-    "SK":True,
-    "AS":True,
-    "PM":True,
-    "VOL":True
+    "PP":True, #done
+    "SK":True, #done
+    "AS":True, #done
+    "PM":True, #done
+    "VOL":True #done
 }
 
 fileofDB = sql.connect("songDatabase.db")
@@ -111,34 +111,48 @@ def playerControls():
     recieveData=request.get_json(force=True)
     if recieveData["control"] != None:
         if recieveData["control"] == "play-pause":
-            player.pause()
-            return "200"
+            if ADMIN_PASS == recieveData['password'] or not(ADMIN_PASS) or controlPerms["PP"]:
+                player.pause()
+                return "200"
+            else:
+                return "401"
         elif recieveData["control"] == "skip":
-            skipNow = True
-            # print(str(player.get_state()))
-            return "200"
+            if ADMIN_PASS == recieveData['password'] or not(ADMIN_PASS) or controlPerms["SK"]:
+                skipNow = True
+                return "200"
+            else:
+                return "401"
         else:
             return "400"
 
 @app.route("/settings", methods=['POST'])
 def settingsControl():
+    global controlPerms
     # set the volume and partymode
     global partyMode
     global player
     recieveData = request.get_json(force=True)
     if recieveData["setting"] == "volume":
-        volumePassed = player.audio_set_volume(int(recieveData["level"]))
-        return {"volumePassed":volumePassed}
+        if ADMIN_PASS == recieveData['password'] or not(ADMIN_PASS) or controlPerms["VOL"]:
+            volumePassed = player.audio_set_volume(int(recieveData["level"]))
+            return {"volumePassed":volumePassed}
+        else:
+            return "401"
     elif recieveData["setting"] == "partymode-toggle":
-        partyMode = not(partyMode)
-        return "200"
+        if ADMIN_PASS == recieveData['password'] or not(ADMIN_PASS) or controlPerms["PM"]:
+            partyMode = not(partyMode)
+            return "200"
+        else:
+            return "401"
     elif recieveData["setting"] == "perms":
+        print(ADMIN_PASS)
+        print(recieveData["password"])
         if ADMIN_PASS == recieveData["password"] and ADMIN_PASS:
+            #if an adminpass doesn't exist these perms can never be changed
             controlPerms = recieveData["admin"]
             return "200"
         else:
             return "401"
-
     elif recieveData["setting"] == "getsettings":
         # probably should have made this a different request type or something but it works
         x = {"partymode":partyMode,"volume":player.audio_get_volume(),"admin":controlPerms}
