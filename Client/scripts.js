@@ -1,5 +1,6 @@
-let ip
-let alertTime = 2
+let ip;
+let alertTime = 2;
+let adminPass = "";
 async function alertText(text="Song Added!") {
     alertbox = document.getElementById("alert");
     alertbox.innerHTML = text;
@@ -10,8 +11,11 @@ async function alertText(text="Song Added!") {
 }
 // a lot of this is kinda waffly because i was trying to get 
 // it to return the right stuff and javascript is asyrcronouse (boo)
-async function getFromServer(bodyInfo, source="") {
+async function getFromServer(bodyInfo, source="",password=adminPass) {
     try{
+        if (bodyInfo != null) {
+            bodyInfo["password"] = password;
+        }
         const response = await fetch("http://"+ip+"/"+source, {
             method: "POST",
             body: JSON.stringify(bodyInfo),
@@ -20,10 +24,15 @@ async function getFromServer(bodyInfo, source="") {
             }
             });
         const data = await response.json();
+        if (data == "401") {
+            alertText("error: Admin restricted action")
+        }
         return await data;
     } catch(e) {
         if (e == "TypeError: Failed to fetch"){
             alertText("error: Can't Connect to Server (is the ip set?)")
+        } else if(e == "") {
+
         } else {
             alertText("error: " + e)
         }
@@ -309,6 +318,22 @@ function toggleDark(e) {
     }
     
 }
+function adminPassEnter(e) {
+    if (e.key == "Enter") {
+        e.preventDefault(); 
+        adminPass=document.getElementById("adminpasswordbox").value
+        alertText("Admin Password Updated")
+    }
+}
+function submitPerms() {
+    let tempData = {}
+    tempData["PP"] = document.getElementById("playpausesettingcheckbox").checked
+    tempData["SK"] = document.getElementById("skipsongsettingcheckbox").checked
+    tempData["AS"] = document.getElementById("addsongsettingcheckbox").checked
+    tempData["PM"] = document.getElementById("partymodesettingcheckbox").checked
+    tempData["VOL"] = document.getElementById("partymodesettingcheckbox").checked
+    getFromServer({"setting":"perms","admin":tempData},"settings")
+}
 
 let optionslist = []
 
@@ -344,6 +369,8 @@ document.getElementById("go-search").addEventListener('click', function(){search
 document.getElementById("songsearch").addEventListener('keydown', function(e){searchSongsEnter(e)});
 document.getElementById("iptextbox").addEventListener('keydown', function(e){ipSetEnter(e)});
 document.getElementById("alerttimetextbox").addEventListener('keydown', function(e){alertTimeEnter(e)});
+document.getElementById("adminpasswordbox").addEventListener('keydown',function(e){adminPassEnter(e)});
+document.getElementById("admincheckholder").addEventListener('click',function(){submitPerms()});
 document.getElementById("partymode-button").addEventListener('click',function(){controlButton("pm")})
 //sets the fact that clicking a song needs to return its id to the function to find it
 document.getElementById("songlist").addEventListener('click', function(e){checkWhatSongWasClicked(e)});
