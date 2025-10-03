@@ -347,7 +347,7 @@ async function submitPerms(e) {
     tempData["PM"] = document.getElementById("partymodesettingcheckbox").checked;
     tempData["VOL"] = document.getElementById("partymodesettingcheckbox").checked;
     let returncode = await getFromServer({"setting":"perms","admin":tempData},"settings");
-    if (returncode == ERR_NO_ADMIN) {
+    if (returncode == ERR_NO_ADMIN || returncode == null) {
         // if you aren't allowed to check the box then toggle it again
         // its not perfect if you spam click, but it gets the point across to the user
         let clickedBox = e.srcElement;
