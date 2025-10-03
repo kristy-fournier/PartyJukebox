@@ -10,7 +10,11 @@ parser=argparse.ArgumentParser(description="Options for the Webby Bits")
 parser.add_argument('-p','--port',help="Port to host on, not the same as the web (client) port",default='19054')
 parser.add_argument('-a','--admin',help="Add an admin password to be used in the client. DO NOT use a password you use elsewhere",default="")
 args = parser.parse_args()
+
+
 portTheUserPicked=args.port
+#Just a note that the return code "401" as of now is used to mean "you don't have the password"
+#This is not great design, and the whole "returning string codes" thing is something to add to the todo list
 ADMIN_PASS = args.admin
 if not(ADMIN_PASS):
     ADMIN_PASS = None
@@ -36,7 +40,7 @@ elif "/" in soundLocation:
     soundLocation += "/"
 else:
     soundLocation += "\\"
-print(soundLocation)
+#print(soundLocation)
 #Create Virtual table for searching
 songDatabase.execute("DROP TABLE virtualSongs;")
 songDatabase.execute("CREATE VIRTUAL TABLE virtualSongs USING fts5(filename, title, artist, art, length);")
@@ -58,7 +62,7 @@ player = fakeplayer.media_player_new()
 # for client side volume to work as well as possible, set system volume to 100 and control in app
 player.audio_set_volume(100)
 app = Flask(__name__)
-# because you are posting from another domain to this one, you need CORS
+# because you are POSTing from another domain to this one, you need CORS
 CORS(app)
 
 def queueSong(song):
@@ -124,6 +128,8 @@ def playerControls():
                 return "401"
         else:
             return "400"
+    else:
+        return "400"
 
 @app.route("/settings", methods=['POST'])
 def settingsControl():
@@ -145,8 +151,8 @@ def settingsControl():
         else:
             return "401"
     elif recieveData["setting"] == "perms":
-        print(ADMIN_PASS)
-        print(recieveData["password"])
+        # print(ADMIN_PASS)
+        # print(recieveData["password"])
         if ADMIN_PASS == recieveData["password"] and ADMIN_PASS:
             #if an adminpass doesn't exist these perms can never be changed
             controlPerms = recieveData["admin"]
@@ -188,17 +194,14 @@ def searchSongDB():
 @app.route("/songadd", methods=["POST"])
 def songadd():
     recieveData=request.get_json(force=True)
-    if ADMIN_PASS and ADMIN_PASS == recieveData['password']:
-        # Pass exists and is correct
+    if (ADMIN_PASS and ADMIN_PASS == recieveData['password']):
+        # Pass exists and is correct, or it's not restricted 
         queueSong(recieveData['song'])
         return "200"
-    elif ADMIN_PASS and not(controlPerms["AS"]):
+    else:
         # Pass exists, or this action isn't restricted 
         return "401"
-    else:
-        # No pass
-        queueSong(recieveData['song'])
-        return "200"
+
 @app.route("/playlist", methods=["POST"])
 def getPlaylist():
     global songNext

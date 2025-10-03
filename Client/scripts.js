@@ -222,6 +222,16 @@ async function checkSettings(skipServer=false) {
         document.getElementById("partymode-button").innerHTML = "Off";
     }
     document.getElementById("volumerange").value = parseInt(x["volume"])
+
+    // do the admin checkboxes here
+    // seemingly i almost finished it last time, dunno why i stopped here
+    // like as far as i can tell this is the last step
+    let currentAdminPerms = x["admin"];
+    document.getElementById("addsongsettingcheckbox").checked = currentAdminPerms["AS"];
+    document.getElementById("skipsongsettingcheckbox").checked = currentAdminPerms["SK"];
+    document.getElementById("playpausesettingcheckbox").checked = currentAdminPerms["PP"];
+    document.getElementById("partymodesettingcheckbox").checked = currentAdminPerms["PM"];
+    document.getElementById("volumechangesettingcheckbox").checked = currentAdminPerms["VOL"];
 }
 
 async function generateVisualPlaylist(conditions="") {
@@ -325,14 +335,20 @@ function adminPassEnter(e) {
         alertText("Admin Password Updated")
     }
 }
-function submitPerms() {
+async function submitPerms() {
     let tempData = {}
-    tempData["PP"] = document.getElementById("playpausesettingcheckbox").checked
-    tempData["SK"] = document.getElementById("skipsongsettingcheckbox").checked
-    tempData["AS"] = document.getElementById("addsongsettingcheckbox").checked
-    tempData["PM"] = document.getElementById("partymodesettingcheckbox").checked
-    tempData["VOL"] = document.getElementById("partymodesettingcheckbox").checked
-    getFromServer({"setting":"perms","admin":tempData},"settings")
+    tempData["PP"] = document.getElementById("playpausesettingcheckbox").checked;
+    tempData["SK"] = document.getElementById("skipsongsettingcheckbox").checked;
+    tempData["AS"] = document.getElementById("addsongsettingcheckbox").checked;
+    tempData["PM"] = document.getElementById("partymodesettingcheckbox").checked;
+    tempData["VOL"] = document.getElementById("partymodesettingcheckbox").checked;
+    let returncode = await getFromServer({"setting":"perms","admin":tempData},"settings");
+    if (returncode === "401") {
+        // just so that the checkboxes don't change if you click without the
+        // (I know i could do this better but this is good enough for now)
+        // okay this actually doesn't work but i have to go eat dinner
+        checkSettings();
+    }
 }
 
 let optionslist = []
@@ -350,6 +366,8 @@ document.getElementById("settings-mode").style.display = "none";
 document.getElementById("volumerange").onchange = async function() {
     let returnValue = await getFromServer({setting:"volume",level:this.value}, "settings")
     if (returnValue["volumePassed"] !=0) {
+        // i forgot about this, i had to do this because it confused the crap out of me one time
+        // vlc doesn't let you change the volume of nothing, which makes sense if you think about it
         alertText("Nothing is playing")
         document.getElementById("volumerange").value = -1
     }
@@ -378,6 +396,7 @@ document.getElementById("songlist").addEventListener('click', function(e){checkW
 let tempWidth = document.getElementById('controls').clientWidth;
 document.getElementById("controls").style.marginLeft = "-"+String(parseInt(tempWidth/2))+"px";
 // document.getElementById("darkmode-button").addEventListener('click',function(){toggleDark()})
+
 //for my use case (my immediate family), they dont know how to set an ip
 //using this allows the creator of the link for, a qr code for example, to set the ip before distributing the code, and it would all work smoothly
 //example (http://192.168.1.100:8000/?ip=192.168.1.100:19054 sets the ip to the same host at the default port)
