@@ -13,8 +13,10 @@ args = parser.parse_args()
 
 
 portTheUserPicked=args.port
-#Just a note that the return code "401" as of now is used to mean "you don't have the password"
-#This is not great design, and the whole "returning string codes" thing is something to add to the todo list
+# Just a note that the return code "401" as of now is used to mean "you don't have the password"
+# This is not great design, and the whole "returning string codes" thing is something to add to the todo list
+# I mean returning 200 when no return is necesary i think is fine but we'll see
+ERR_NO_ADMIN = "401"
 ADMIN_PASS = args.admin
 if not(ADMIN_PASS):
     ADMIN_PASS = None
@@ -119,13 +121,13 @@ def playerControls():
                 player.pause()
                 return "200"
             else:
-                return "401"
+                return ERR_NO_ADMIN
         elif recieveData["control"] == "skip":
             if ADMIN_PASS == recieveData['password'] or not(ADMIN_PASS) or controlPerms["SK"]:
                 skipNow = True
                 return "200"
             else:
-                return "401"
+                return ERR_NO_ADMIN
         else:
             return "400"
     else:
@@ -143,13 +145,13 @@ def settingsControl():
             volumePassed = player.audio_set_volume(int(recieveData["level"]))
             return {"volumePassed":volumePassed}
         else:
-            return "401"
+            return ERR_NO_ADMIN
     elif recieveData["setting"] == "partymode-toggle":
         if ADMIN_PASS == recieveData['password'] or not(ADMIN_PASS) or controlPerms["PM"]:
             partyMode = not(partyMode)
             return "200"
         else:
-            return "401"
+            return ERR_NO_ADMIN
     elif recieveData["setting"] == "perms":
         # print(ADMIN_PASS)
         # print(recieveData["password"])
@@ -158,7 +160,7 @@ def settingsControl():
             controlPerms = recieveData["admin"]
             return "200"
         else:
-            return "401"
+            return ERR_NO_ADMIN
     elif recieveData["setting"] == "getsettings":
         # probably should have made this a different request type or something but it works
         x = {"partymode":partyMode,"volume":player.audio_get_volume(),"admin":controlPerms}
@@ -200,7 +202,7 @@ def songadd():
         return "200"
     else:
         # Pass exists, or this action isn't restricted 
-        return "401"
+        return ERR_NO_ADMIN
 
 @app.route("/playlist", methods=["POST"])
 def getPlaylist():

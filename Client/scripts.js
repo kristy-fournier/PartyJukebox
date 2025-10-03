@@ -1,6 +1,8 @@
 let ip;
 let alertTime = 2;
 let adminPass = "";
+const ERR_NO_ADMIN = "401"; // gonna use this later to refactor
+
 async function alertText(text="Song Added!") {
     alertbox = document.getElementById("alert");
     alertbox.innerHTML = text;
@@ -25,12 +27,12 @@ async function getFromServer(bodyInfo, source="",password=adminPass) {
             });
         const data = await response.json();
         if (data == "401") {
-            alertText("error: Admin restricted action")
+            alertText("Error: Admin restricted action")
         }
         return await data;
     } catch(e) {
         if (e == "TypeError: Failed to fetch"){
-            alertText("error: Can't Connect to Server (is the ip set?)")
+            alertText("Error: Can't Connect to Server (is the ip set?)")
         } else if(e == "") {
 
         } else {
@@ -224,8 +226,6 @@ async function checkSettings(skipServer=false) {
     document.getElementById("volumerange").value = parseInt(x["volume"])
 
     // do the admin checkboxes here
-    // seemingly i almost finished it last time, dunno why i stopped here
-    // like as far as i can tell this is the last step
     let currentAdminPerms = x["admin"];
     document.getElementById("addsongsettingcheckbox").checked = currentAdminPerms["AS"];
     document.getElementById("skipsongsettingcheckbox").checked = currentAdminPerms["SK"];
@@ -302,8 +302,12 @@ async function generateVisualPlaylist(conditions="") {
 }
 
 async function submitSong(songid) {
-    getFromServer({song: songid}, "songadd")
-    alertText("Added to Queue")
+    let returncode = await getFromServer({song: songid}, "songadd");
+    if(returncode == ERR_NO_ADMIN) {
+        // right now the error is alerted in getFromServer, maybe will change that
+    } else {
+        alertText("Added to Queue");
+    }
 }
 function checkWhatSongWasClicked(e) {
     itemId = e.srcElement.id;
@@ -335,7 +339,7 @@ function adminPassEnter(e) {
         alertText("Admin Password Updated")
     }
 }
-async function submitPerms() {
+async function submitPerms(e) {
     let tempData = {}
     tempData["PP"] = document.getElementById("playpausesettingcheckbox").checked;
     tempData["SK"] = document.getElementById("skipsongsettingcheckbox").checked;
@@ -343,11 +347,11 @@ async function submitPerms() {
     tempData["PM"] = document.getElementById("partymodesettingcheckbox").checked;
     tempData["VOL"] = document.getElementById("partymodesettingcheckbox").checked;
     let returncode = await getFromServer({"setting":"perms","admin":tempData},"settings");
-    if (returncode === "401") {
-        // just so that the checkboxes don't change if you click without the
-        // (I know i could do this better but this is good enough for now)
-        // okay this actually doesn't work but i have to go eat dinner
-        checkSettings();
+    if (returncode == ERR_NO_ADMIN) {
+        // if you aren't allowed to check the box then toggle it again
+        // its not perfect if you spam click, but it gets the point across to the user
+        let clickedBox = e.srcElement;
+        clickedBox.checked = !clickedBox.checked;
     }
 }
 
@@ -388,7 +392,7 @@ document.getElementById("songsearch").addEventListener('keydown', function(e){se
 document.getElementById("iptextbox").addEventListener('keydown', function(e){ipSetEnter(e)});
 document.getElementById("alerttimetextbox").addEventListener('keydown', function(e){alertTimeEnter(e)});
 document.getElementById("adminpasswordbox").addEventListener('keydown',function(e){adminPassEnter(e)});
-document.getElementById("admincheckholder").addEventListener('click',function(){submitPerms()});
+document.getElementById("admincheckholder").addEventListener('click',function(e){submitPerms(e)});
 document.getElementById("partymode-button").addEventListener('click',function(){controlButton("pm")})
 //sets the fact that clicking a song needs to return its id to the function to find it
 document.getElementById("songlist").addEventListener('click', function(e){checkWhatSongWasClicked(e)});

@@ -177,6 +177,14 @@ h4 {
     border-bottom: 0;
 }
 
+.settings > .item > h2 {
+    margin-bottom: 4px;
+}
+
+.settings > .item > p {
+    margin-top: 0px
+}
+
 .versionNumber {
     font-size: 8px;
     font-style: italic;
