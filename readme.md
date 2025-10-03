@@ -65,6 +65,7 @@ From left to right:
     - The currently playing song is identified, and has the duration listed
 - The play-pause button toggles playing
 - The skip button goes to the next track
+    - *No "previous" button is a design decision (It's a feature not a bug)*
 - The search button opens the search screen (pictured)
 - The settings button (top right) opens the settings menu
     - Server IP allows you to change the ip that the site connects to
