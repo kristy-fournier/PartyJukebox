@@ -29,6 +29,7 @@ webbyBits.py
 4. Run `webbyBits.py`
     * *The port can be customized at runtime using* `-p portNumber` *as an atribute*
     * *You can add an admin password at runtime with* `-a AdminPass` *as an atribute*
+        * ***NOTE: Do not reuse ANY password for this, it is 100% unsecure. The best option is just a random string you write down once***
 
 You can now connect with the client and use the app as normal. \
 *Make sure you have turned down/off any other apps that might make noise or notification sounds* \
@@ -59,6 +60,7 @@ These are specific details on each section of the app, and how to use them
         - `--port (port)` changes the port for that run
         - The default port can be changed in the file
     - Running with `--admin (admin password)` sets an admin password for moderation on the client
+        - ***Note: Do not reuse a password, consider this like making whatever this string is public, no security is guaranteed***
         - Anyone who knows the admin password can enter it on the client and change the abilities of any non-admin users (for example to limit skipping)
             - The total set of features that can be restricted is 
                 - Skip track 
