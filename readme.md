@@ -30,6 +30,7 @@ webbyBits.py
     * *The port can be customized at runtime using* `-p portNumber` *as an atribute*
     * *You can add an admin password at runtime with* `-a AdminPass` *as an atribute*
         * ***NOTE: Do not reuse ANY password for this, it is 100% unsecure. The best option is just a random string you write down once***
+        * This is intended for protecting certain features for small closed events, not for public security
 
 You can now connect with the client and use the app as normal. \
 *Make sure you have turned down/off any other apps that might make noise or notification sounds* \
