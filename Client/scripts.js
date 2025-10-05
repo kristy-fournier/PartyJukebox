@@ -1,5 +1,8 @@
-let ip
-let alertTime = 2
+let ip;
+let alertTime = 2;
+let adminPass = "";
+const ERR_NO_ADMIN = "401"; // gonna use this later to refactor
+
 async function alertText(text="Song Added!") {
     alertbox = document.getElementById("alert");
     alertbox.innerHTML = text;
@@ -10,8 +13,11 @@ async function alertText(text="Song Added!") {
 }
 // a lot of this is kinda waffly because i was trying to get 
 // it to return the right stuff and javascript is asyrcronouse (boo)
-async function getFromServer(bodyInfo, source="") {
+async function getFromServer(bodyInfo, source="",password=adminPass) {
     try{
+        if (bodyInfo != null) {
+            bodyInfo["password"] = password;
+        }
         const response = await fetch("http://"+ip+"/"+source, {
             method: "POST",
             body: JSON.stringify(bodyInfo),
@@ -20,10 +26,15 @@ async function getFromServer(bodyInfo, source="") {
             }
             });
         const data = await response.json();
+        if (data == "401") {
+            alertText("Error: Admin restricted action")
+        }
         return await data;
     } catch(e) {
         if (e == "TypeError: Failed to fetch"){
-            alertText("error: Can't Connect to Server (is the ip set?)")
+            alertText("Error: Can't Connect to Server (is the ip set?)")
+        } else if(e == "") {
+
         } else {
             alertText("error: " + e)
         }
@@ -192,6 +203,14 @@ async function checkSettings(skipServer=false) {
     qrCodeGenerate()
     document.getElementById("alerttimetextbox").value = alertTime
     partyButtonState = document.getElementById("partymode-button").innerHTML;
+    let nodeList = document.getElementById("admincheckholder").children
+    // temporary
+    for (let i=0; i<nodeList.length;i++) {
+        if (nodeList[i].type == 'checkbox') {
+            nodeList[i].checked = true;
+        }
+    }
+    //ping the server here
     x = await getFromServer({setting: "getsettings"}, "settings");
     if (!(skipServer) || partyButtonState=="N/A") {
         if (x["partymode"] == false) {
@@ -205,6 +224,14 @@ async function checkSettings(skipServer=false) {
         document.getElementById("partymode-button").innerHTML = "Off";
     }
     document.getElementById("volumerange").value = parseInt(x["volume"])
+
+    // do the admin checkboxes here
+    let currentAdminPerms = x["admin"];
+    document.getElementById("addsongsettingcheckbox").checked = currentAdminPerms["AS"];
+    document.getElementById("skipsongsettingcheckbox").checked = currentAdminPerms["SK"];
+    document.getElementById("playpausesettingcheckbox").checked = currentAdminPerms["PP"];
+    document.getElementById("partymodesettingcheckbox").checked = currentAdminPerms["PM"];
+    document.getElementById("volumechangesettingcheckbox").checked = currentAdminPerms["VOL"];
 }
 
 async function generateVisualPlaylist(conditions="") {
@@ -275,8 +302,12 @@ async function generateVisualPlaylist(conditions="") {
 }
 
 async function submitSong(songid) {
-    getFromServer({song: songid}, "songadd")
-    alertText("Added to Queue")
+    let returncode = await getFromServer({song: songid}, "songadd");
+    if(returncode == ERR_NO_ADMIN) {
+        // right now the error is alerted in getFromServer, maybe will change that
+    } else {
+        alertText("Added to Queue");
+    }
 }
 function checkWhatSongWasClicked(e) {
     itemId = e.srcElement.id;
@@ -301,6 +332,28 @@ function toggleDark(e) {
     }
     
 }
+function adminPassEnter(e) {
+    if (e.key == "Enter") {
+        e.preventDefault(); 
+        adminPass=document.getElementById("adminpasswordbox").value
+        alertText("Admin Password Updated")
+    }
+}
+async function submitPerms(e) {
+    let tempData = {}
+    tempData["PP"] = document.getElementById("playpausesettingcheckbox").checked;
+    tempData["SK"] = document.getElementById("skipsongsettingcheckbox").checked;
+    tempData["AS"] = document.getElementById("addsongsettingcheckbox").checked;
+    tempData["PM"] = document.getElementById("partymodesettingcheckbox").checked;
+    tempData["VOL"] = document.getElementById("partymodesettingcheckbox").checked;
+    let returncode = await getFromServer({"setting":"perms","admin":tempData},"settings");
+    if (returncode == ERR_NO_ADMIN || returncode == null) {
+        // if you aren't allowed to check the box then toggle it again
+        // its not perfect if you spam click, but it gets the point across to the user
+        let clickedBox = e.srcElement;
+        clickedBox.checked = !clickedBox.checked;
+    }
+}
 
 let optionslist = []
 
@@ -317,6 +370,8 @@ document.getElementById("settings-mode").style.display = "none";
 document.getElementById("volumerange").onchange = async function() {
     let returnValue = await getFromServer({setting:"volume",level:this.value}, "settings")
     if (returnValue["volumePassed"] !=0) {
+        // i forgot about this, i had to do this because it confused the crap out of me one time
+        // vlc doesn't let you change the volume of nothing, which makes sense if you think about it
         alertText("Nothing is playing")
         document.getElementById("volumerange").value = -1
     }
@@ -336,6 +391,8 @@ document.getElementById("go-search").addEventListener('click', function(){search
 document.getElementById("songsearch").addEventListener('keydown', function(e){searchSongsEnter(e)});
 document.getElementById("iptextbox").addEventListener('keydown', function(e){ipSetEnter(e)});
 document.getElementById("alerttimetextbox").addEventListener('keydown', function(e){alertTimeEnter(e)});
+document.getElementById("adminpasswordbox").addEventListener('keydown',function(e){adminPassEnter(e)});
+document.getElementById("admincheckholder").addEventListener('click',function(e){submitPerms(e)});
 document.getElementById("partymode-button").addEventListener('click',function(){controlButton("pm")})
 //sets the fact that clicking a song needs to return its id to the function to find it
 document.getElementById("songlist").addEventListener('click', function(e){checkWhatSongWasClicked(e)});
@@ -343,6 +400,7 @@ document.getElementById("songlist").addEventListener('click', function(e){checkW
 let tempWidth = document.getElementById('controls').clientWidth;
 document.getElementById("controls").style.marginLeft = "-"+String(parseInt(tempWidth/2))+"px";
 // document.getElementById("darkmode-button").addEventListener('click',function(){toggleDark()})
+
 //for my use case (my immediate family), they dont know how to set an ip
 //using this allows the creator of the link for, a qr code for example, to set the ip before distributing the code, and it would all work smoothly
 //example (http://192.168.1.100:8000/?ip=192.168.1.100:19054 sets the ip to the same host at the default port)
