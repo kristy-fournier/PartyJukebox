@@ -11,7 +11,6 @@ parser.add_argument('-p','--port',help="Port to host on, not the same as the web
 parser.add_argument('-a','--admin',help="Add an admin password to be used in the client. DO NOT use a password you use elsewhere",default="")
 args = parser.parse_args()
 
-
 portTheUserPicked=args.port
 # Just a note that the return code "401" as of now is used to mean "you don't have the password"
 # This is not great design, and the whole "returning string codes" thing is something to add to the todo list
@@ -59,8 +58,8 @@ songNext = None
 skipNow = False
 playlist = []
 playlistLock = threading.Lock()
-fakeplayer = vlc.Instance()
-player = fakeplayer.media_player_new()
+vlcInstance = vlc.Instance()
+player = vlcInstance.media_player_new()
 # for client side volume to work as well as possible, set system volume to 100 and control in app
 player.audio_set_volume(100)
 app = Flask(__name__)
@@ -77,17 +76,17 @@ def playQueuedSongs():
     global partyMode
     while True:
         with playlistLock:
-            z = str(player.get_state())
-            
-            if playlist and (z == "State.Ended" or z== "State.Stopped" or z == "State.NothingSpecial" or skipNow == True):
+            playerState = str(player.get_state())
+            endStates = ["State.Ended","State.Stopped","State.NothingSpecial"]
+            if playlist and (playerState in endStates or skipNow == True):
                 # New song is in the queue and (the previous song is over or skip has been pressed)
                 player.stop()
                 skipNow = False
                 songNext = playlist.pop(0)
-                media = fakeplayer.media_new(soundLocation+songNext)
+                media = vlcInstance.media_new(soundLocation+songNext)
                 player.set_media(media)
                 player.play()
-            elif (skipNow==True or (z == "State.Ended" or z == "State.NothingSpecial" or z=="State.Stopped")):
+            elif (skipNow==True or (playerState in endStates)):
                 # skip was pressed and there are no new songs
                 skipNow=False
                 songNext = None
@@ -112,7 +111,6 @@ queueThread.start()
 def playerControls():
     # recieve control inputs (play/pause and skip) from the webUI
     global skipNow
-    global media
     global partyMode
     recieveData=request.get_json(force=True)
     if recieveData["control"] != None:
@@ -153,8 +151,6 @@ def settingsControl():
         else:
             return ERR_NO_ADMIN
     elif recieveData["setting"] == "perms":
-        # print(ADMIN_PASS)
-        # print(recieveData["password"])
         if ADMIN_PASS == recieveData["password"] and ADMIN_PASS:
             #if an adminpass doesn't exist these perms can never be changed
             controlPerms = recieveData["admin"]
@@ -201,7 +197,7 @@ def songadd():
         queueSong(recieveData['song'])
         return "200"
     else:
-        # Pass exists, or this action isn't restricted 
+        # Pass exists, and the action is restricted 
         return ERR_NO_ADMIN
 
 @app.route("/playlist", methods=["POST"])
