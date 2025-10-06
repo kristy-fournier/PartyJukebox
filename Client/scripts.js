@@ -1,3 +1,4 @@
+// set all the global stuff
 let ip;
 let alertTime = 2;
 let adminPass = "";
@@ -26,7 +27,11 @@ async function getFromServer(bodyInfo, source="",password=adminPass) {
             }
             });
         const data = await response.json();
-        if (data == "401") {
+        if (data == ERR_NO_ADMIN) {
+            // im suprised i didn't comment on this already but this is kinda lame desing
+            // its not wrong but you know
+            // it is easy which i like
+            // and it overrides any other non-async alerts which is nice
             alertText("Error: Admin restricted action")
         }
         return await data;
@@ -36,13 +41,12 @@ async function getFromServer(bodyInfo, source="",password=adminPass) {
         } else if(e == "") {
 
         } else {
-            alertText("error: " + e)
+            alertText("Error: " + e)
         }
         const response=null;
         return response;
     }
 }
-
 
 //cookie reader is taken from internet because cookies ae too complicated for me
 //i still understand how it works though promise just i see no reason to write this from scratch
@@ -63,34 +67,34 @@ function getCookie(cname) {
     }
 //someone more organised than me would have set all these html elements to variables so they dont have to get them 50 times
 async function controlButton(buttonType) {
-    if (buttonType == "pp") {
+    if (buttonType == "pp") { // Play-Pause button
         getFromServer({control: "play-pause"}, "controls")
-    } else if (buttonType == "sk") {
+    } else if (buttonType == "sk") { // Skip button
         getFromServer({control: "skip"}, "controls")
         if (document.getElementById("playlist-mode").style.display == "block") {
             generateVisualPlaylist("skip-button");
         }
-    } else if (buttonType == "pl") {
+    } else if (buttonType == "pl") { // Playlist button
         document.getElementById("songlist").innerHTML = "";
         document.getElementById("playlist").innerHTML = "<h1 id=\"playlist-alert\"></h1>";
         document.getElementById("playlist-mode").style.display = "block";
         document.getElementById("songlist-mode").style.display = "none";
         document.getElementById("settings-mode").style.display = "none";
         generateVisualPlaylist();
-    } else if (buttonType == "se") {
+    } else if (buttonType == "se") { //SearchMode button
         document.getElementById("songlist").innerHTML = "<h1>Search to find songs!</h1>";
         document.getElementById("playlist").innerHTML = "";
         document.getElementById("playlist-mode").style.display = "none";
         document.getElementById("songlist-mode").style.display = "block";
         document.getElementById("settings-mode").style.display = "none";
-    } else if (buttonType == "st") {
+    } else if (buttonType == "st") { //Settings button
         document.getElementById("songlist").innerHTML = "";
         document.getElementById("playlist").innerHTML = "";
         document.getElementById("playlist-mode").style.display = "none";
         document.getElementById("songlist-mode").style.display = "none";
         document.getElementById("settings-mode").style.display = "block";
         checkSettings()
-    } else if (buttonType = "pm") {
+    } else if (buttonType = "pm") { //Partymode toggle (in settings)
         await getFromServer({setting: "partymode-toggle"}, "settings")
         checkSettings(true)
     }
@@ -105,7 +109,6 @@ function searchSongsEnter(e) {
 }
 
 async function searchSongs(searchTerm){
-    let optionslist = []
     document.getElementById("songlist").innerHTML = ""
     searchResults = await getFromServer({search:searchTerm},"search").then()
     //generate the visual song list
@@ -345,7 +348,7 @@ async function submitPerms(e) {
     tempData["SK"] = document.getElementById("skipsongsettingcheckbox").checked;
     tempData["AS"] = document.getElementById("addsongsettingcheckbox").checked;
     tempData["PM"] = document.getElementById("partymodesettingcheckbox").checked;
-    tempData["VOL"] = document.getElementById("partymodesettingcheckbox").checked;
+    tempData["VOL"] = document.getElementById("volumechangesettingcheckbox").checked;
     let returncode = await getFromServer({"setting":"perms","admin":tempData},"settings");
     if (returncode == ERR_NO_ADMIN || returncode == null) {
         // if you aren't allowed to check the box then toggle it again
@@ -366,10 +369,13 @@ document.addEventListener('keydown', function(e){
 }})
 document.getElementById("playlist-mode").style.display = "none";
 document.getElementById("settings-mode").style.display = "none";
-//.ontouch for mobile??
 document.getElementById("volumerange").onchange = async function() {
+    // there is no reason for this not to be a defined function
+    // FIX THIS
     let returnValue = await getFromServer({setting:"volume",level:this.value}, "settings")
-    if (returnValue["volumePassed"] !=0) {
+    if (returnValue == ERR_NO_ADMIN) {
+        alertText("Error: Admin restricted action");
+    } else if (returnValue["volumePassed"] !=0) {
         // i forgot about this, i had to do this because it confused the crap out of me one time
         // vlc doesn't let you change the volume of nothing, which makes sense if you think about it
         alertText("Nothing is playing")

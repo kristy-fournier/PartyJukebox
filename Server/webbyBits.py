@@ -20,6 +20,9 @@ ADMIN_PASS = args.admin
 if not(ADMIN_PASS):
     ADMIN_PASS = None
 # True = everyone, False = admin only. Change in client while in use. 
+"""PP,SK,AS,PM,VOL all set to True or False
+False is admin only
+True is all users"""
 controlPerms = {
     "PP":True, #done
     "SK":True, #done
@@ -192,12 +195,12 @@ def searchSongDB():
 @app.route("/songadd", methods=["POST"])
 def songadd():
     recieveData=request.get_json(force=True)
-    if (ADMIN_PASS and ADMIN_PASS == recieveData['password']):
+    if (ADMIN_PASS and ADMIN_PASS == recieveData['password']) or controlPerms["AS"]:
         # Pass exists and is correct, or it's not restricted 
         queueSong(recieveData['song'])
         return "200"
     else:
-        # Pass exists, and the action is restricted 
+        # the pass is incorrect (technically a pass not existing falls into the above case because controlPerms is never changed)
         return ERR_NO_ADMIN
 
 @app.route("/playlist", methods=["POST"])
