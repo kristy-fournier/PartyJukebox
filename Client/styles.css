@@ -136,6 +136,7 @@ h4 {
 }
 
 .playlist > .item > .text {
+    padding: 3px;
     display: inline-block;
     margin: 0px 3px;
 }
@@ -150,7 +151,7 @@ h4 {
 }
 
 .playlist > .item > .text > * {
-    margin:5% 2px;
+    margin:2px;
 }
 
 /* settings stuff */

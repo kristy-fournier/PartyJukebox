@@ -108,6 +108,4 @@ for i in songFiles:
     # each "song" is stored as a dictionary/JSON entry following the format seen in the readME
     songDatabase.execute(f"INSERT INTO songs (filename, title, artist, art, length) VALUES (?,?,?,?,?)",(i,title,artist,image,length))
 
-
-
 fileOfDB.commit()
