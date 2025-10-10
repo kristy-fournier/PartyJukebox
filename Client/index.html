@@ -8,7 +8,7 @@
 </head>
 <body id="test-body">
     <!--Cookie Popup(does it matter if im not tracking them? i have no idea)-->
-    <script type="text/javascript" src="https://cookieconsent.popupsmart.com/src/js/popper.js"></script><script> window.start.init({Palette:"palette2",Mode:"floating left",Theme:"classic",LinkText:" Learn More!",Message:"This website uses cookies to save necessary data to your device, and no tracking is performed.",Time:"0",})</script>
+    <script type="text/javascript" src="/ext/popper.js"></script><script> window.start.init({Palette:"palette2",Mode:"floating left",Theme:"classic",LinkText:" Learn More!",Message:"This website uses cookies to save necessary data to your device, and no tracking is performed.",Time:"0",})</script>
     
     <div class="intro">
         <h1 id="title">Jukebox Remote</h1>
@@ -27,7 +27,7 @@ changes visibility with JS-->
                 These are generated using javascript for search
 
             <div class="item">
-                <img src="search.png"></img>
+                <img src="placeholder.png"></img>
                 <h3><span>Song title</span></h3>
                 <h4>Artist</h4>
             </div>
@@ -83,8 +83,6 @@ changes visibility with JS-->
             </div>
             <div class="item">
                 <h2>Share the remote:</h2>
-                <!-- <p class="italic">Hit settings icon to refresh the code</p>
-                 You actually no longer need to do that, it does it anytime the ip changes -->
                 <div id="qrcode" alt="QR code to the remote URL"></div>
             </div>
             <h1>Admin Settings</h1>
@@ -111,13 +109,13 @@ changes visibility with JS-->
     <!--All the buttons are down here but settings is just doing its own thing-->
     <img class="settings-button" id="settings-button" src="./images/settings.png" alt="settings"></img>
     <div id="controls" class="controls">
-        <img class="control-button" id="playlist-button" src="./images/playlist.png" alt="playlist"></img>
-        <img class="control-button" id="play-pause-button" src="./images/play-pause.png" alt="play pause"></img>
-        <img class="control-button" id="skip-button" src="./images/skip.png" alt="skip"></img>
-        <img class="control-button" id="search-button" src="./images/search.png" alt="search"></img>
+        <img class="control-button" id="playlist-button" src="./images/playlist.png" alt="Playlist"></img>
+        <img class="control-button" id="play-pause-button" src="./images/play-pause.png" alt="Play pause"></img>
+        <img class="control-button" id="skip-button" src="./images/skip.png" alt="Skip"></img>
+        <img class="control-button" id="search-button" src="./images/search.png" alt="Search"></img>
         
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="/ext/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="scripts.js"></script>
 </body>
 </html>

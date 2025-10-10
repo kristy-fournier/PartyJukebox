@@ -52,7 +52,6 @@ These are specific details on each section of the app, and how to use them
     - Running with `--directory (directoryOfmp3s)` allows for sound files to be in a different place
         - Default `"./sound/"`
         - _This setting might be kinda iffy on Linux. You're on Linux just go and edit it if you have issues_
-        - ~~__Make certain you only use forward slashes in your directory, even on Windows__~~ I think this should be fine now i'll check later
 - `songDatabase.db` stores all the information about each song in a SQLite database with tables `songs` and `meta`
 - `webbyBits.py` imports the database, runs all music playing, and accepts all commands from clients
     - Searches return matching songs
@@ -88,4 +87,7 @@ From left to right:
         - *Because the volume can be controlled in the client, for best usage set your device volume as high as possible and turn it down using this slider*
     - QR code to allow others to connect to and use the Remote
 
+## External Credits
+ - QR Code Generator: JS file found [here](https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js)
+ - Cookie Popup: JS file found [here](https://cookieconsent.popupsmart.com/src/js/popper.js)
 *See `LICENSE.md` for redistribution details.
