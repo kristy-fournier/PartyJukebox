@@ -5,7 +5,7 @@
 - [ ] Refactoring existing code
     - [ ] Update the SQL -> Server -> Client pipeline when searching and building playlist
     - [ ] Verify all if-else sequences are correct and not redundant
-    - [ ] Remove old comments
+    - [x] Remove old comments
 - [ ] Secure Password
     * Actually use SSL for stuff that should be using it
 - [ ] GUI update for client

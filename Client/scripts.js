@@ -3,7 +3,7 @@ let ip;
 let alertTime = 2;
 let adminPass = "";
 const ERR_NO_ADMIN = "401"; // gonna use this later to refactor
-
+const VALID_FILE_EXT = ["mp3","flac","wav"]
 async function alertText(text="Song Added!") {
     alertbox = document.getElementById("alert");
     alertbox.innerHTML = text;
@@ -41,7 +41,7 @@ async function getFromServer(bodyInfo, source="",password=adminPass) {
         } else if(e == "") {
 
         } else {
-            alertText("Error: " + e)
+            alertText("Error: " + e);
         }
         const response=null;
         return response;
@@ -320,7 +320,9 @@ function checkWhatSongWasClicked(e) {
     //i feel like later kristy won't apreciate this
     //one of my files was "file.MP3" so it didn't work
     //windows be like
-    if (itemId.slice(-4).toLowerCase() == ".mp3") {
+    let filenameSep = itemId.split('.')
+    
+    if (VALID_FILE_EXT.includes(filenameSep[filenameSep.length-1].toLowerCase())) {
         submitSong(itemId);
     } 
 }
@@ -388,6 +390,8 @@ document.getElementById("volumerange").onchange = async function() {
     }
     
 }
+//bit of a cheat code for clearing the alerts when they don't clear normally
+document.getElementById("title").addEventListener('click',function(){document.getElementById("alert").innerHTML = ""})
 document.getElementById("settings-button").addEventListener('click',function(){controlButton("st")});
 document.getElementById("play-pause-button").addEventListener('click', function(){controlButton("pp")});
 document.getElementById("playlist-button").addEventListener('click', function(){controlButton("pl")});
@@ -402,6 +406,7 @@ document.getElementById("admincheckholder").addEventListener('click',function(e)
 document.getElementById("partymode-button").addEventListener('click',function(){controlButton("pm")})
 //sets the fact that clicking a song needs to return its id to the function to find it
 document.getElementById("songlist").addEventListener('click', function(e){checkWhatSongWasClicked(e)});
+
 //makes the controls look mostly normal on all screens, best solution i could find, idk man
 let tempWidth = document.getElementById('controls').clientWidth;
 document.getElementById("controls").style.marginLeft = "-"+String(parseInt(tempWidth/2))+"px";

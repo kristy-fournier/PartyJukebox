@@ -1,6 +1,8 @@
 import os
 from mutagen.easyid3 import EasyID3
 from mutagen.mp3 import MP3
+import mutagen.flac
+import mutagen.wave
 import sqlite3 as sql
 import requests, ast, time, math, argparse
 
@@ -60,15 +62,23 @@ if args.art.lower() == "true" and not(args.apikey == ""):
         print("ETA "+ str(x) + " seconds")
 
 # will be used soon
-validFormats = [".mp3",".flac",".wav"]
+validFormats = ["mp3","flac","wav"]
 
 for i in songFiles:
-    if i[-4:].lower() != ".mp3":
+    global song
+    extension = i.split(".")
+    extension = extension[len(extension)-1]
+    if not(extension.lower() in validFormats):
         # skip any non music files (like directories or cover art)
         continue
     try:
-        # get the metadata
-        song = EasyID3(soundLocation+i)
+        if(extension.lower() == "mp3"):
+            # get the metadata
+            song = EasyID3(soundLocation+i)
+        elif(extension.lower() == "flac"):
+            song = mutagen.flac.FLAC(soundLocation+i)
+        elif(extension.lower() in ["wav","wave"]):
+            song = mutagen.wave.WAVE(soundLocation+i)
         title = song['title'][0]
         artist = song['artist'][0]
     except:
@@ -102,7 +112,7 @@ for i in songFiles:
     else:
         image=None
     try:
-        length = math.ceil(MP3(soundLocation+i).info.length)
+        length = math.ceil(song.info.length)
     except:
         length = 0
     if len(songFiles) != 1:
