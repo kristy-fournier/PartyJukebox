@@ -59,9 +59,12 @@ if args.art.lower() == "true" and not(args.apikey == ""):
     else:
         print("ETA "+ str(x) + " seconds")
 
+# will be used soon
+validFormats = [".mp3",".flac",".wav"]
+
 for i in songFiles:
     if i[-4:].lower() != ".mp3":
-        # skip any non-mp3's (like directories or cover art)
+        # skip any non music files (like directories or cover art)
         continue
     try:
         # get the metadata
@@ -105,7 +108,7 @@ for i in songFiles:
     if len(songFiles) != 1:
         index = (songFiles.index(i))%4
         print("\r" + str(loading[index] + str(math.floor((songFiles.index(i)/(len(songFiles)-1))*100))+ "%"), end='', flush=True)
-    # each "song" is stored as a dictionary/JSON entry following the format seen in the readME
+    # each "song" is stored as a SQLite entry following the format seen in the readME
     songDatabase.execute(f"INSERT INTO songs (filename, title, artist, art, length) VALUES (?,?,?,?,?)",(i,title,artist,image,length))
 
 fileOfDB.commit()

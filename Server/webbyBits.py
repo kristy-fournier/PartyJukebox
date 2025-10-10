@@ -5,8 +5,6 @@ import sqlite3 as sql
 import vlc,threading,time,random, argparse
 # Argparse Stuff
 parser=argparse.ArgumentParser(description="Options for the Webby Bits")
-# this is no longer needed assuming my file works correctly with the generator
-# parser.add_argument('-d','--directory',help="Directory of the song files (make sure this matches the directory used for the databaseGenerator)", default="./sound/")
 parser.add_argument('-p','--port',help="Port to host on, not the same as the web (client) port",default='19054')
 parser.add_argument('-a','--admin',help="Add an admin password to be used in the client. DO NOT use a password you use elsewhere",default="")
 args = parser.parse_args()
@@ -20,9 +18,7 @@ ADMIN_PASS = args.admin
 if not(ADMIN_PASS):
     ADMIN_PASS = None
 # True = everyone, False = admin only. Change in client while in use. 
-"""PP,SK,AS,PM,VOL all set to True or False
-False is admin only
-True is all users"""
+# play-pause,skip,addsong,partymode,volume in order
 controlPerms = {
     "PP":True, #done
     "SK":True, #done
@@ -37,14 +33,12 @@ songDatabase = fileofDB.cursor()
 #song directory
 songDatabase.execute("SELECT * FROM meta WHERE id='songDirectory';")
 soundLocation = songDatabase.fetchall()[0][1]
-
 if soundLocation[-1] == "/" or soundLocation[-1] == "\\":
     pass
 elif "/" in soundLocation:
     soundLocation += "/"
 else:
     soundLocation += "\\"
-#print(soundLocation)
 #Create Virtual table for searching
 songDatabase.execute("DROP TABLE virtualSongs;")
 songDatabase.execute("CREATE VIRTUAL TABLE virtualSongs USING fts5(filename, title, artist, art, length);")
@@ -180,7 +174,7 @@ def searchSongDB():
         songDatabase.execute("SELECT * FROM virtualSongs WHERE virtualSongs MATCH ?",[recieveData['search']])
         results = songDatabase.fetchall()
     tempdata = {}
-    # this is a temporary solution so i dont have to change the 
+    # this is a temporary solution so i dont have to change the client 
     for i in results:
         tempdata[i[0]] = {
             "title": i[1],
@@ -188,7 +182,6 @@ def searchSongDB():
             "art": i[3],
             "length": i[4]
         }
-    # print(tempData)
     fileofDB.close()
     return tempdata
 
@@ -196,11 +189,11 @@ def searchSongDB():
 def songadd():
     recieveData=request.get_json(force=True)
     if (ADMIN_PASS and ADMIN_PASS == recieveData['password']) or controlPerms["AS"]:
-        # Pass exists and is correct, or it's not restricted 
+        # Password exists and is correct, or it's not restricted 
         queueSong(recieveData['song'])
         return "200"
     else:
-        # the pass is incorrect (technically a pass not existing falls into the above case because controlPerms is never changed)
+        # the password is incorrect (technically a password not existing falls into the above case because controlPerms is never changed)
         return ERR_NO_ADMIN
 
 @app.route("/playlist", methods=["POST"])
@@ -234,7 +227,6 @@ def getPlaylist():
             "length": result[4]
         }
         tempPlaylist.append({i:k})
-    # print(tempPlaylist)
     fileofDB.close()
     return tempPlaylist
 
