@@ -3,7 +3,8 @@ let ip;
 let alertTime = 2;
 let adminPass = "";
 const ERR_NO_ADMIN = "401"; // gonna use this later to refactor
-const VALID_FILE_EXT = ["mp3","flac","wav"]
+const VALID_FILE_EXT = ["mp3","flac","wav"];
+
 async function alertText(text="Song Added!") {
     alertbox = document.getElementById("alert");
     alertbox.innerHTML = text;
@@ -17,6 +18,7 @@ async function alertText(text="Song Added!") {
 async function getFromServer(bodyInfo, source="",password=adminPass) {
     try{
         if (bodyInfo != null) {
+            // the currently set password is always included in every request
             bodyInfo["password"] = password;
         }
         const response = await fetch("http://"+ip+"/"+source, {
@@ -142,6 +144,7 @@ async function searchSongs(searchTerm){
         document.getElementById("songlist").innerHTML = "<h1>We might not have that one...</h1>";
     }
 }
+
 function alertTimeEnter(e){
     if (e.key == "Enter") {
         e.preventDefault(); 
@@ -178,6 +181,7 @@ function ipSetter(){
             alertText("Your IP is now set to "+ipBox+" at port 19054 (Default)")
         }
     }
+    // anytime the server ip changes the qrcode should change to use it
     qrCodeGenerate()
         
 }

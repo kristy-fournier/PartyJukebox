@@ -40,11 +40,13 @@ elif "/" in soundLocation:
 else:
     soundLocation += "\\"
 #Create Virtual table for searching
+#I'm not sure why i don't do this in the databaseGenerator, but it also takes like 3 seconds so i'm not messing with it rn
 songDatabase.execute("DROP TABLE virtualSongs;")
-songDatabase.execute("CREATE VIRTUAL TABLE virtualSongs USING fts5(filename, title, artist, art, length);")
+songDatabase.execute("CREATE VIRTUAL TABLE virtualSongs USING fts5(filename, title, artist, art, length, lossless);")
 songDatabase.execute("INSERT INTO virtualSongs SELECT * FROM songs;")
 fileofDB.commit()
 fileofDB.close()
+
 #Initializing all the global stuff
 random.seed()
 global partyMode
@@ -66,6 +68,7 @@ CORS(app)
 def queueSong(song):
     with playlistLock:
         playlist.append(song)
+
 # this is a loop that plays the songs and checks for playlist changes, skips, ect.
 def playQueuedSongs():
     global skipNow
@@ -94,15 +97,11 @@ def playQueuedSongs():
                 songDatabase.execute("SELECT * FROM songs ORDER BY RANDOM() LIMIT 1;")
                 result = songDatabase.fetchall()
                 # adds the random songs for party mode
-                # the above 2 means this only applies if (a song is playing (or paused)) and the queue is empty
+                # the above 2 means this only applies if (a song is playing or paused) and (the queue is empty)
                 playlist.append(result[0][0])
         # check for new songs every second
         # I just didn't want to eat too much processing looping  
         time.sleep(1)
-# start the media player thread
-queueThread = threading.Thread(target=playQueuedSongs)
-queueThread.daemon = True
-queueThread.start()
 
 @app.route("/controls", methods=['POST'])
 def playerControls():
@@ -112,13 +111,13 @@ def playerControls():
     recieveData=request.get_json(force=True)
     if recieveData["control"] != None:
         if recieveData["control"] == "play-pause":
-            if ADMIN_PASS == recieveData['password'] or not(ADMIN_PASS) or controlPerms["PP"]:
+            if ADMIN_PASS == recieveData['password'] or controlPerms["PP"]:
                 player.pause()
                 return "200"
             else:
                 return ERR_NO_ADMIN
         elif recieveData["control"] == "skip":
-            if ADMIN_PASS == recieveData['password'] or not(ADMIN_PASS) or controlPerms["SK"]:
+            if ADMIN_PASS == recieveData['password'] or controlPerms["SK"]:
                 skipNow = True
                 return "200"
             else:
@@ -136,13 +135,13 @@ def settingsControl():
     global player
     recieveData = request.get_json(force=True)
     if recieveData["setting"] == "volume":
-        if ADMIN_PASS == recieveData['password'] or not(ADMIN_PASS) or controlPerms["VOL"]:
+        if ADMIN_PASS == recieveData['password'] or controlPerms["VOL"]:
             volumePassed = player.audio_set_volume(int(recieveData["level"]))
             return {"volumePassed":volumePassed}
         else:
             return ERR_NO_ADMIN
     elif recieveData["setting"] == "partymode-toggle":
-        if ADMIN_PASS == recieveData['password'] or not(ADMIN_PASS) or controlPerms["PM"]:
+        if ADMIN_PASS == recieveData['password'] or controlPerms["PM"]:
             partyMode = not(partyMode)
             return "200"
         else:
@@ -231,5 +230,11 @@ def getPlaylist():
     return tempPlaylist
 
 if __name__ == "__main__":
+    # There's not really a whole lot of point to a main function for something like this, you'd never use any of these methods
+    # elsewhere, but its just good practice i guess
+    # start the media player thread
+    queueThread = threading.Thread(target=playQueuedSongs)
+    queueThread.daemon = True
+    queueThread.start()
     app.run(host='0.0.0.0', port=portTheUserPicked)
     

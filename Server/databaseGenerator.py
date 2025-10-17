@@ -35,7 +35,7 @@ except:
     songDatabase.execute("UPDATE meta SET data = ? WHERE id = 'songDirectory'", (soundLocation,))
 if args.mode.lower() == "update":
     #Create if not exists
-    songDatabase.execute("CREATE TABLE IF NOT EXISTS songs (filename TEXT PRIMARY KEY, title TEXT, artist TEXT, art TEXT, length INTEGER);")
+    songDatabase.execute("CREATE TABLE IF NOT EXISTS songs (filename TEXT PRIMARY KEY, title TEXT, artist TEXT, art TEXT, length INTEGER, lossless INTEGER);")
     songDatabase.execute("SELECT filename FROM songs;")
     dBfilelist = songDatabase.fetchall()
     dBfilelistSet = set()
@@ -50,7 +50,7 @@ if args.mode.lower() == "update":
     print("new songs: " + ", ".join(songFiles))
 elif args.mode.lower()=="new":
     songDatabase.execute("DROP TABLE IF EXISTS songs;")
-    songDatabase.execute("CREATE TABLE songs (filename TEXT PRIMARY KEY, title TEXT, artist TEXT, art TEXT, length INTEGER);")
+    songDatabase.execute("CREATE TABLE songs (filename TEXT PRIMARY KEY, title TEXT, artist TEXT, art TEXT, length INTEGER, lossless INTEGER);")
 else:
     raise ValueError("Must be \"new\" or \"update\"")
 
@@ -65,37 +65,43 @@ if args.art.lower() == "true" and not(args.apikey == ""):
 validFormats = ["mp3","flac","wav"]
 
 for i in songFiles:
+    # songFiles is the list of filenames, so i is the filename of each song
     global song
-    extension = i.split(".")
-    extension = extension[len(extension)-1]
+    filenamesplit = i.split(".")
+    extension = filenamesplit[len(filenamesplit)-1]
+    lossless = 0 # sqlite doesn't have booleans. what is this, C?
     if not(extension.lower() in validFormats):
         # skip any non music files (like directories or cover art)
         continue
     try:
+        print(extension)
+        # get the metadata
         if(extension.lower() == "mp3"):
-            # get the metadata
             song = EasyID3(soundLocation+i)
         elif(extension.lower() == "flac"):
             song = mutagen.flac.FLAC(soundLocation+i)
+            lossless = 1
         elif(extension.lower() in ["wav","wave"]):
+            # Im actually pretty sure waves can't have metadata, but whatevz
             song = mutagen.wave.WAVE(soundLocation+i)
+            lossless = 1
         title = song['title'][0]
         artist = song['artist'][0]
     except:
         if "_" in i:
-            # if metadata is missing, try to use file name following title_artist.mp3
+            # if metadata is missing, try to use file name following "title_artist.mp3"
             song = i.split("_")
             title = song[0]
             artist = song[1].split(".")[0]
         elif "-" in i:
-            # if there's no underscore, try artist - title.mp3
+            # if there's no underscore, try "artist - title.mp3"
             song = i.split("-")
             title = song[1].split(".")[0]
             artist = song[0]
             title = title.strip()
             artist = artist.strip()
         else:
-            #if the file is not formatted with an underscore, the title is the file name
+            #if the file is not formatted with an underscore or hyphen, the title is the file name
             title = i
             artist = None
     if args.art.lower() == "true" and not(args.apikey == ""):
@@ -112,13 +118,19 @@ for i in songFiles:
     else:
         image=None
     try:
-        length = math.ceil(song.info.length)
+        if extension.lower() in ['flac','wave','wav']:
+            length = math.ceil(song.info.length)
+        elif extension.lower() == "mp3":
+            # for some reason ID3 and mutagen.mp3 get different info
+            # artist and title are in id3() and length is in mp3()
+            # I dunno why
+            length = MP3(soundLocation+i).info.length
     except:
         length = 0
     if len(songFiles) != 1:
         index = (songFiles.index(i))%4
         print("\r" + str(loading[index] + str(math.floor((songFiles.index(i)/(len(songFiles)-1))*100))+ "%"), end='', flush=True)
-    # each "song" is stored as a SQLite entry following the format seen in the readME
-    songDatabase.execute(f"INSERT INTO songs (filename, title, artist, art, length) VALUES (?,?,?,?,?)",(i,title,artist,image,length))
+    # each "song" is stored as a SQLite entry following the format seen below
+    songDatabase.execute(f"INSERT INTO songs (filename, title, artist, art, length, lossless) VALUES (?,?,?,?,?,?)",(i,title,artist,image,length,lossless))
 
 fileOfDB.commit()

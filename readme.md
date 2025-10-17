@@ -65,7 +65,7 @@ These are specific details on each section of the app, and how to use them
             - The total set of features that can be restricted is 
                 - Skip track 
                 - Play-pause toggle
-                - Add track 
+                - Add track to queue
                 - Partymode toggle
                 - Change volume
         - When this argument is left out (or empty string) the admin features aren't used, and everyone can do everything
@@ -90,4 +90,5 @@ From left to right:
 ## External Credits
  - QR Code Generator: JS file found [here](https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js)
  - Cookie Popup: JS file found [here](https://cookieconsent.popupsmart.com/src/js/popper.js)
-*See `LICENSE.md` for redistribution details.
+
+*See `LICENSE.md` for redistribution and editing details.*
