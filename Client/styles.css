@@ -102,6 +102,7 @@ h4 {
 .songlist > .item > h3, .songlist > .item > h4{
     margin-left: 2px;
     margin-right: 2px;
+    word-wrap: break-word;
 }
 
 .searchbox-holder {

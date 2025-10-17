@@ -330,6 +330,7 @@ function checkWhatSongWasClicked(e) {
         submitSong(itemId);
     } 
 }
+
 function toggleDark(e) {
     let x = document.getElementById("test-body").classList
     if (!(x.contains("dark-mode"))) {
@@ -341,6 +342,7 @@ function toggleDark(e) {
     }
     
 }
+
 function adminPassEnter(e) {
     if (e.key == "Enter") {
         e.preventDefault(); 
@@ -348,6 +350,7 @@ function adminPassEnter(e) {
         alertText("Admin Password Updated")
     }
 }
+
 async function submitPerms(e) {
     let tempData = {}
     tempData["PP"] = document.getElementById("playpausesettingcheckbox").checked;
@@ -430,6 +433,7 @@ if (ip == null || ip=="") {
 if (ip==null || ip==""){
     ip = ""
 }
+// saving the cookies (don't tell the EU)
 document.cookie = "ip="+ip+"; path=/;"
 
 alertTime = getCookie("alertTime")
