@@ -119,6 +119,7 @@ async function searchSongs(searchTerm){
         let newItem = document.createElement("div");
         newItem.className = "item";
         newItem.id = fileName;
+        newItem.tabIndex = 0;
         let image = document.createElement("img");
         try {
             if (currentSongInJSON["art"] == null) {
@@ -263,6 +264,7 @@ async function generateVisualPlaylist(conditions="") {
             let newItem = document.createElement("div");
             newItem.className = "item";
             newItem.id = fileName;
+            newItem.tabIndex = 0;
             let image = document.createElement("img");
             try {
                 if (playlist[i]["art"] == null) {
