@@ -10,6 +10,9 @@
     - [ ] `.env` file for the api keys and other runtime info to be set, rather than in the `.py` files
     - [ ] Hashing rather than plaintext sending (that way at least the password text itself stays private)
     - [ ] Actually use SSL, for posting (CORS seems like an issue)
+- [ ] Accessibility
+    - [ ] Better use of semantic HTML tags
+    - [ ] Full keyboard control (tab, enter to select, tab between control buttons)
 - [ ] GUI update for client
     - [x] Playlist items look cleaner
     - [x] Dark mode
