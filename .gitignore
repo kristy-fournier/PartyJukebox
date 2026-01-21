@@ -1,3 +1,4 @@
 server/sound/
 *.db
 start.bat
+.env

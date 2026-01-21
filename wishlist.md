@@ -6,12 +6,14 @@
     - [ ] Update the SQL -> Server -> Client pipeline when searching and building playlist
     - [ ] Verify all if-else sequences are correct and not redundant
     - [x] Remove old comments
-- [ ] Secure Password
-    * Actually use SSL for stuff that should be using it
+- [ ] Security Updates
+    - [ ] `.env` file for the api keys and other runtime info to be set, rather than in the `.py` files
+    - [ ] Hashing rather than plaintext sending (that way at least the password text itself stays private)
+    - [ ] Actually use SSL, for posting (CORS seems like an issue)
 - [ ] GUI update for client
     - [x] Playlist items look cleaner
-    - [ ] Google material design??
-    - [ ] Dark mode?
+    - [x] Dark mode
+    - [ ] Google material design (Not sure I want this anymore)
     - [ ] New Icons
 - [ ] "Credit" system so each client can only add a set number of songs
     - Based on time period, number in queue, other possible ideas for credits
