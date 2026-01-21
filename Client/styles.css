@@ -1,20 +1,46 @@
 /* testing */
 
 .dark-mode {
-    background-color: #333333;
-    color:#ffffff; 
+    --bg-main: #333333;
+    --bg-item: #3f3f3f;
+    --bg-inputs: #2a2a2a;
+    --text-color: #ffffff; 
     /* -webkit-filter:invert(100%);
     filter:progid:DXImageTransform.Microsoft.BasicImage(invert='1'); */
 }
 
+.dark-mode .control-button {
+    filter: invert(100%) brightness(0.9)
+}
+
+:root {
+    --bg-main: #eeeeee;
+    --bg-item: #dddddd;
+    --bg-inputs: #ffffff;
+    --text-color: #000000;
+    color: var(--text-color);
+}
+
+/* In hindsight i should have just used p's with classes to decide size, but whatever
+Should probably fix that at some point, this is like the least accessible site ever */
+h1,h2,h3,h4,h5,p,input,button,label {
+    color: var(--text-color);
+}
+
+input, button {
+    background-color: var(--bg-inputs);
+}
+
 /* Things that are always visible */
 
+
 body {
-    background-color: #EEEEEE;
+    background-color: var(--bg-main);
 }
 * {
     font-family: 'arial';
 }
+
 .italic {
     font-style: italic;
 }
@@ -35,7 +61,7 @@ h4 {
     left: 50%;
     bottom: 0;
     margin: 0 auto;
-    background-color:inherit;
+    background-color:var(--bg-main);
 }
 
 .alert {
@@ -44,7 +70,7 @@ h4 {
     width: 100%;
     text-align: center;
     z-index: 1000;
-    background-color: #EEEEEEd6;
+    background-color: color-mix(in srgb, var(--bg-main), transparent 16%);
 }
 
 .settings-button {
@@ -54,13 +80,12 @@ h4 {
     top:0;
     right:0;
     margin: 3px;
-    background:inherit;
     /* This is a circle background for the circle settings button
     So it can display over other text and such */
     border-radius: 50%;
 }
 
-.control-button{
+.controls > .control-button{
     width:20%;
     max-width: 110px;
     margin: auto 2%;
@@ -74,7 +99,7 @@ h4 {
 
 .item {
     /* Only actually applies to playlist and search because settings item has "inherit" bg-colour */
-    background-color: #DDDDDD;
+    background-color: var(--bg-item);
 }
 
 /* Songlist stuff */
@@ -87,7 +112,7 @@ h4 {
 }
 
 .songlist > .item{
-    border: 1px solid #333333;
+    border: 1px solid var(--bg-item);
     width:30%;
     max-width: 150px;
     margin: 5px auto;
@@ -128,7 +153,7 @@ h4 {
 }
 
 .playlist > .item{
-    border: 1px solid #333333;
+    border: 1px solid var(--bg-item);
     display: flex;
     max-width: 50em;
     min-width: 200px;
@@ -166,12 +191,12 @@ h4 {
 .settings > .item {
     margin-left: 10%;
     width:fit-content;
-    background-color: inherit;
+    background-color: var(--bg-main);
 }
 
 .settings > .item:not(:last-child) {
     padding-bottom: 10px;
-    border-bottom: 1px solid #333333;
+    border-bottom: 1px solid var(--bg-item);
 }
 
 .settings > .item.no-line {
@@ -192,7 +217,7 @@ h4 {
 }
 
 .versionNumber {
-    font-size: 8px;
+    font-size: 11px;
     font-style: italic;
     text-align: left;
     width: 80%;

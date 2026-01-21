@@ -419,7 +419,7 @@ document.getElementById("songlist").addEventListener('click', function(e){checkW
 //makes the controls look mostly normal on all screens, best solution i could find, idk man
 let tempWidth = document.getElementById('controls').clientWidth;
 document.getElementById("controls").style.marginLeft = "-"+String(parseInt(tempWidth/2))+"px";
-// document.getElementById("darkmode-button").addEventListener('click',function(){toggleDark()})
+document.getElementById("darkmode-button").addEventListener('click',function(){toggleDark()})
 
 //for my use case (my immediate family), they dont know how to set an ip
 //using this allows the creator of the link for, a qr code for example, to set the ip before distributing the code, and it would all work smoothly
