@@ -4,26 +4,27 @@ from mutagen.mp3 import MP3
 import mutagen.flac
 import mutagen.wave
 import sqlite3 as sql
-import requests, ast, time, math, argparse
+import requests, ast, time, math, argparse, dotenv
 
 loading = ["-","\\","|","/"]
 
 parser=argparse.ArgumentParser(description="Options for the generation of the song database")
-parser.add_argument('-k','--apikey', help='String: LastFM api key', default="")
+# parser.add_argument('-k','--apikey', help='String: LastFM api key', default="")
 parser.add_argument('-m', '--mode', help='new/update: Remake database or update current', default= "update")
 parser.add_argument('-a', '--art', help="True/False: Add art to the database using LastFm (takes minimum 0.25s per song)", default="True")
 parser.add_argument('-d','--directory',help="Directory of the song files", default="./sound/")
 args = parser.parse_args()
-apikeylastfm = args.apikey
+dotenv.load_dotenv()
+apikeylastfm = os.getenv("API_KEY")
+soundLocation = os.getenv("DIRECTORY")
+# apikeylastfm = args.apikey
 if args.directory[-1] == "/" or args.directory[-1] == "\\":
     soundLocation = args.directory
 elif "/" in args.directory:
     soundLocation = args.directory + "/"
 else:
     soundLocation = args.directory + "\\"
-# if you want to set the api key/sound directory permenantly for your setup just uncomment the next line
-# apikeylastfm = "KeyHere"
-# soundLocation = "directoryHere"
+
 songFiles = os.listdir(soundLocation)
 fileOfDB = sql.connect("songDatabase.db")
 songDatabase = fileOfDB.cursor()
@@ -54,12 +55,12 @@ elif args.mode.lower()=="new":
 else:
     raise ValueError("Must be \"new\" or \"update\"")
 
-if args.art.lower() == "true" and not(args.apikey == ""):
-    x = len(songFiles)*0.25
-    if x > 60:
-        print("ETA "+ str(x/60) + " minutes")
+if args.art.lower() == "true" and not(apikeylastfm == ""):
+    eta = len(songFiles)*0.25
+    if eta > 60:
+        print(f"ETA {eta/60:.2f} minutes")
     else:
-        print("ETA "+ str(x) + " seconds")
+        print(f"ETA {eta} seconds")
 
 # will be used soon
 validFormats = ["mp3","flac","wav"]
@@ -103,7 +104,8 @@ for i in songFiles:
             #if the file is not formatted with an underscore or hyphen, the title is the file name
             title = i
             artist = None
-    if args.art.lower() == "true" and not(args.apikey == ""):
+    if args.art.lower() == "true" and not(apikeylastfm == "") and artist: 
+        # and artist just means anything that only has the x.mp3 title won't bother to check since it'll never exist on last fm
         try:
             # get the images from last fm, try 2 different sizes
             image = ast.literal_eval(requests.post(url="http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key="+apikeylastfm+"&artist="+artist+"&track="+title+"&format=json").text)["track"]["album"]["image"][2]["#text"]
@@ -111,7 +113,7 @@ for i in songFiles:
                 image = ast.literal_eval(requests.post(url="http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key="+apikeylastfm+"&artist="+artist+"&track="+title+"&format=json").text)["track"]["album"]["image"][1]["#text"]
                 if image == "":
                     image = None
-            time.sleep(0.25)
+            time.sleep(0.01)
         except:
             image=None
     else:
