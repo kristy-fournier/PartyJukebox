@@ -74,7 +74,6 @@ for i in songFiles:
         # skip any non music files (like directories or cover art)
         continue
     try:
-        print(extension)
         # get the metadata
         if(extension.lower() == "mp3"):
             song = EasyID3(soundLocation+i)
@@ -133,4 +132,8 @@ for i in songFiles:
     # each "song" is stored as a SQLite entry following the format seen below
     songDatabase.execute(f"INSERT INTO songs (filename, title, artist, art, length, lossless) VALUES (?,?,?,?,?,?)",(i,title,artist,image,length,lossless))
 
+songDatabase.execute("DROP TABLE IF EXISTS virtualSongs;")
+songDatabase.execute("CREATE VIRTUAL TABLE virtualSongs USING fts5(filename, title, artist, art, length, lossless);")
+songDatabase.execute("INSERT INTO virtualSongs SELECT * FROM songs;")
 fileOfDB.commit()
+fileOfDB.close()

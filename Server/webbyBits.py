@@ -41,11 +41,6 @@ else:
     soundLocation += "\\"
 #Create Virtual table for searching
 #I'm not sure why i don't do this in the databaseGenerator, but it also takes like 3 seconds so i'm not messing with it rn
-songDatabase.execute("DROP TABLE virtualSongs;")
-songDatabase.execute("CREATE VIRTUAL TABLE virtualSongs USING fts5(filename, title, artist, art, length, lossless);")
-songDatabase.execute("INSERT INTO virtualSongs SELECT * FROM songs;")
-fileofDB.commit()
-fileofDB.close()
 
 #Initializing all the global stuff
 random.seed()
