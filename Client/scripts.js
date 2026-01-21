@@ -5,6 +5,14 @@ let adminPass = "";
 const ERR_NO_ADMIN = "401"; // gonna use this later to refactor
 const VALID_FILE_EXT = ["mp3","flac","wav"];
 
+let darkmodetemp = getCookie("darkmode");
+if (darkmodetemp === "true") {
+    // i know this is gonna cause weird blinking
+    // maybe the dark mode function should be loaded before any content, would that work?
+    // NEW JS FILE ????? exciting stuff
+    toggleDark("None");
+}
+
 async function alertText(text="Song Added!") {
     alertbox = document.getElementById("alert");
     alertbox.innerHTML = text;
@@ -336,10 +344,12 @@ function checkWhatSongWasClicked(e) {
 function toggleDark(e) {
     let x = document.getElementById("test-body").classList
     if (!(x.contains("dark-mode"))) {
-        document.getElementById("darkmode-button").innerHTML = "On"
+        document.cookie = "darkmode=true; path=/;";
+        document.getElementById("darkmode-button").innerHTML = "On";
         x.add("dark-mode");
     } else {
-        document.getElementById("darkmode-button").innerHTML = "Off"
+        document.cookie = "darkmode=false; path=/;";
+        document.getElementById("darkmode-button").innerHTML = "Off";
         x.remove("dark-mode");
     }
     
@@ -435,6 +445,7 @@ if (ip == null || ip=="") {
 if (ip==null || ip==""){
     ip = ""
 }
+
 // saving the cookies (don't tell the EU)
 document.cookie = "ip="+ip+"; path=/;"
 
