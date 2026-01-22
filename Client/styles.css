@@ -73,16 +73,23 @@ h4 {
     background-color: color-mix(in srgb, var(--bg-main), transparent 16%);
 }
 
-.settings-button {
-    width: 15%;
+.settings-button-holder {
+    width:15%;
     max-width: 90px;
     position:fixed;
     top:0;
     right:0;
     margin: 3px;
+    background-color: var(--bg-main);
     /* This is a circle background for the circle settings button
     So it can display over other text and such */
     border-radius: 50%;
+}
+
+.settings-button {
+    width: 100%;
+    
+    
 }
 
 .controls > .control-button{
@@ -105,7 +112,7 @@ h4 {
 /* Songlist stuff */
 .songlist {
     width: 80%;
-    min-width: 300px;
+    min-width: 400px;
     margin:auto auto 150px;
     display: flex;
     flex-wrap: wrap;
@@ -139,6 +146,7 @@ h4 {
 .searchbox {
     width: 65%;
     margin: 1px;
+    margin-bottom: 16px;
 }
 .go-search {
     width: 20%;
