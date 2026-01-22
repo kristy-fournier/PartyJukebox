@@ -332,7 +332,11 @@ async function submitSong(songid) {
     let returncode = await getFromServer({song: songid}, "songadd");
     if(returncode == ERR_NO_ADMIN) {
         // right now the error is alerted in getFromServer, maybe will change that
-    } else {
+    }
+    else if(returncode["error"]=="song-in-queue") {
+        alertText("That song's about to play! Hang on!")
+    }
+    else {
         alertText("Added to Queue");
     }
 }

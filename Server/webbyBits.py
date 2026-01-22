@@ -2,7 +2,7 @@ from flask import Flask
 from flask import request
 from flask_cors import CORS
 import sqlite3 as sql
-import vlc,threading,time,random,argparse,dotenv,os,hashlib
+import vlc,threading,time,random,argparse,dotenv,os,hashlib,string
 # Argparse Stuff
 parser=argparse.ArgumentParser(description="Options for the Webby Bits")
 # parser.add_argument('-p','--port',help="Port to host on, not the same as the web (client) port",default='19054')
@@ -14,9 +14,13 @@ portTheUserPicked=os.getenv("SERVER_PORT")
 # This is not great design, and the whole "returning string codes" thing is something to add to the todo list
 # I mean returning 200 when no return is necesary i think is fine but we'll see
 ERR_NO_ADMIN = "401"
-ADMIN_PASS = hashlib.sha256(bytes(args.admin,'utf-8')).hexdigest()
-if not(ADMIN_PASS):
-    ADMIN_PASS = None
+if args.admin:
+    ADMIN_PASS = hashlib.sha256(bytes(args.admin,'utf-8')).hexdigest()
+else:
+    tempPass = ''.join(random.choices(string.ascii_letters + string.digits +"?"+"!",k=20))
+    print("No adminPass was set, the auto generated one is: "+tempPass)
+    ADMIN_PASS = hashlib.sha256(bytes(tempPass,'utf-8')).hexdigest()
+    
 # True = everyone, False = admin only. Change in client while in use. 
 # play-pause,skip,addsong,partymode,volume in order
 controlPerms = {
@@ -189,9 +193,15 @@ def searchSongDB():
 def songadd():
     recieveData=request.get_json(force=True)
     if (ADMIN_PASS and ADMIN_PASS == recieveData['password']) or controlPerms["AS"]:
-        # Password exists and is correct, or it's not restricted 
-        queueSong(recieveData['song'])
-        return "200"
+        # Password exists and is correct, or it's not restricted
+        # if (recieveData['song'] in playlist):
+        #     return {"error":"song-in-queue"}
+        # else:
+        # Right now the above is disabled since i want to make it optional first
+        # probably with a checkbox like the other admin controls
+        if True:
+            queueSong(recieveData['song'])
+            return "200"
     else:
         # the password is incorrect (technically a password not existing falls into the above case because controlPerms is never changed)
         return ERR_NO_ADMIN
