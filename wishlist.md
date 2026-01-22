@@ -23,3 +23,7 @@
     - Without a login system there's no easy way to give credits to specific clients (and a login is beyond scope of what I want to do)
         - Potentially a "redemption code" system, which can be tracked client side
     - All of this is very hackable without a server-side login.
+- [ ] Websockets / some method of updating the time remaining to any client on the playlist screen
+    * currently the screen just grabs the "elapsed time" once when it is loaded
+    * websockets can re-update clients
+    * not actually sure if i can CORS-socket but we're sure gonna try
