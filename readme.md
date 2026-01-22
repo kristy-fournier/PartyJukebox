@@ -10,6 +10,7 @@ The main advantage compared to doing something similar using Spotify is that you
 ### Client Setup:
 The client is a web application that can be hosted on any server, it need not be the same device running the music player. 
 * If the app is being setup for a large group, you can distribute the url (via QR code, for example) with `?ip=YOURSERVERHOSTNAME:19054` set as an attribute after the url. 
+* You can also add `?darkmode=(true/false)` to set the default colour scheme, but this will be overwritten by the users saved choice in the cookie if they change it themselves
 ### Server Setup:
 **Pre-setup:** If you want the songs to have art associated with them, it is all hosted on and retrieved from LastFM, and you will need to sign up for a developer app, and put your key in the database generator \
 \
@@ -22,14 +23,17 @@ webbyBits.py
 ```
 
 1. Place mp3 files in the `sound/` folder
-2. Open `databaseGenerator.py` and put your LastFM API key in at the top or at runtime using `-k APIKey` (*optional*)
-3. Run `databaseGenerator.py`
+2. Rename `example.env` to `.env` and...
+    - Set the location where your audio files are (Default: `./sound/`)
+    - Set the LastFM API key (Optional)
+    - Change the port of the webbybits server ("Default )
+3. Run `databaseGenerator.py` (Will try to use LastFM API key)
     * *The `databaseGenerator.py` will index all mp3 files, and save the information to `songDatabase.db`*
     * *If getting images, this process may take a long time with a large amount of mp3 files*
 4. Run `webbyBits.py`
-    * *The port can be customized at runtime using* `-p portNumber` *as an atribute*
+    * *The port can be customized by editing the `.env` file*
     * *You can add an admin password at runtime with* `-a AdminPass` *as an atribute*
-        * ***NOTE: Do not reuse ANY password for this, it is 100% unsecure. The best option is just a random string you write down once***
+        * ***NOTE: Do not reuse ANY password for this, it is hashed but 100% unsecure. The best option is just a random string you write down once***
         * This is intended for protecting certain features for small closed events, not for public security
 
 You can now connect with the client and use the app as normal. \
@@ -42,25 +46,21 @@ These are specific details on each section of the app, and how to use them
 - `sound/` contains all mp3 files by default
 - `databaseGenerator.py` scans through mp3 files and gets information about them
     - `Filename, Title, Artist, Art, Length` are all saved 
-        - *If the title and artist are not in the mp3 metadata, it looks for a format of* `TITLE_ARTIST.mp3` *then of* `ARTIST - TITLE.mp3` *and otherwise defaults to the file name as the title, and no artist*
+        - *If the title and artist are not in the file metadata, it looks for a format of* `TITLE_ARTIST.mp3` *then of* `ARTIST - TITLE.mp3` *and otherwise defaults to the file name as the title, and no artist*
         - Art is retrieved from LastFM
     - Running with `--mode (update/new)` either updates the current database and adds new songs/removes deleted songs, or recreates the entire database (update is default, and is faster in art mode)
     - Running with `--art (True/False)` retrieves art from  LastFM or doesn't (True is default)
         - *Can only generate one song / 0.25 seconds, to avoid pinging the LastFM server too much*
-    - Running with `--apikey (KEYhere)` sets the LastFM key for that run
-        - If this is set to an empty string (Default) the app runs in non-art mode
-    - Running with `--directory (directoryOfmp3s)` allows for sound files to be in a different place
-        - Default `"./sound/"`
-        - _This setting might be kinda iffy on Linux. You're on Linux just go and edit it if you have issues_
+    - Directory to index for music files can be set in the `.env` file
 - `songDatabase.db` stores all the information about each song in a SQLite database with tables `songs` and `meta`
 - `webbyBits.py` imports the database, runs all music playing, and accepts all commands from clients
     - Searches return matching songs
     - Accepts Play-Pause and Skip commands
     - Uses port 19054 by default
-        - `--port (port)` changes the port for that run
+        - Can be changed in the `.env` file
         - The default port can be changed in the file
     - Running with `--admin (admin password)` sets an admin password for moderation on the client
-        - ***Note: Do not reuse a password, consider this like making whatever this string is public, no security is guaranteed***
+        - ***Note: Do not reuse a password, the password is hashed before being sent over the network, but I still wouldn't bet my house on it, no security is guaranteed***
         - Anyone who knows the admin password can enter it on the client and change the abilities of any non-admin users (for example to limit skipping)
             - The total set of features that can be restricted is 
                 - Skip track 
@@ -80,6 +80,7 @@ From left to right:
     - *No "previous" button is a design decision (It's a feature not a bug)*
 - The search button opens the search screen (pictured)
 - The settings button (top right) opens the settings menu
+    - Dark mode sets a dark mode and stores a cookie to keep you in dark mode after refreshing
     - Server IP allows you to change the ip that the site connects to
     - Alert time changes how long error/confirmation messages are shown for (Default 2s)
     - Party Mode adds new songs to the queue when the queue has only 1 song in it

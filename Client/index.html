@@ -59,7 +59,6 @@ changes visibility with JS-->
                 <p class="italic">Opposite of light mode</p>
                 <button title="darkmode-button" id="darkmode-button">Off</button>
             </div>
-           
             <div class="item">
                 <h2 for="iptextbox">Server IP:</h2>
                 <p class="italic">IP of the device running the song server</p>
@@ -107,14 +106,13 @@ changes visibility with JS-->
         </div>
     </div>
     <!--All the buttons are down here but settings is just doing its own thing-->
-    <img class="settings-button control-button" id="settings-button" src="./images/settings.png" alt="settings"></img>
     <div id="controls" class="controls">
-        <img class="control-button" id="playlist-button" src="./images/playlist.png" alt="Playlist"></img>
-        <img class="control-button" id="play-pause-button" src="./images/play-pause.png" alt="Play pause"></img>
-        <img class="control-button" id="skip-button" src="./images/skip.png" alt="Skip"></img>
-        <img class="control-button" id="search-button" src="./images/search.png" alt="Search"></img>
-        
+        <img tabindex=0 class="control-button" id="playlist-button" src="./images/playlist.png" alt="Playlist"></img>
+        <img tabindex=0 class="control-button" id="play-pause-button" src="./images/play-pause.png" alt="Play pause"></img>
+        <img tabindex=0 class="control-button" id="skip-button" src="./images/skip.png" alt="Skip"></img>
+        <img tabindex=0 class="control-button" id="search-button" src="./images/search.png" alt="Search"></img>    
     </div>
+    <img tabindex=0 class="settings-button control-button" id="settings-button" src="./images/settings.png" alt="settings"></img>
     <script src="/ext/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="scripts.js"></script>
 </body>

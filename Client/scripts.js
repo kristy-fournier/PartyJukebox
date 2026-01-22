@@ -5,7 +5,12 @@ let adminPass = "";
 const ERR_NO_ADMIN = "401"; // gonna use this later to refactor
 const VALID_FILE_EXT = ["mp3","flac","wav"];
 
+const params = new URLSearchParams(location.search);
+
 let darkmodetemp = getCookie("darkmode");
+darkmodetemp = params.get("darkmode")
+if(darkmodetemp === "") {
+}
 if (darkmodetemp === "true") {
     // i know this is gonna cause weird blinking
     // maybe the dark mode function should be loaded before any content, would that work?
@@ -29,6 +34,7 @@ async function getFromServer(bodyInfo, source="",password=adminPass) {
             // the currently set password is always included in every request
             bodyInfo["password"] = password;
         }
+        // console.log(bodyInfo);
         const response = await fetch("http://"+ip+"/"+source, {
             method: "POST",
             body: JSON.stringify(bodyInfo),
@@ -327,18 +333,20 @@ async function submitSong(songid) {
     }
 }
 function checkWhatSongWasClicked(e) {
-    itemId = e.srcElement.id;
-    if ((itemId.length-itemId.lastIndexOf("image") == 5) && itemId.lastIndexOf("image")!=-1) {
-        itemId = itemId.slice(0,-6)
+    if(e.type == "click" || e.key == "Enter") {
+        itemId = e.srcElement.id;
+        if ((itemId.length-itemId.lastIndexOf("image") == 5) && itemId.lastIndexOf("image")!=-1) {
+            itemId = itemId.slice(0,-6)
+        }
+        //i feel like later kristy won't apreciate this
+        //one of my files was "file.MP3" so it didn't work
+        //windows be like
+        let filenameSep = itemId.split('.')
+        
+        if (VALID_FILE_EXT.includes(filenameSep[filenameSep.length-1].toLowerCase())) {
+            submitSong(itemId);
+        } 
     }
-    //i feel like later kristy won't apreciate this
-    //one of my files was "file.MP3" so it didn't work
-    //windows be like
-    let filenameSep = itemId.split('.')
-    
-    if (VALID_FILE_EXT.includes(filenameSep[filenameSep.length-1].toLowerCase())) {
-        submitSong(itemId);
-    } 
 }
 
 function toggleDark(e) {
@@ -355,11 +363,31 @@ function toggleDark(e) {
     
 }
 
-function adminPassEnter(e) {
+async function sha256(message) {
+    // Encode the message as UTF-8
+    const msgBuffer = new TextEncoder().encode(message);
+
+    // Hash the message
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+
+    // Convert ArrayBuffer to hex string
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+    return hashHex;
+}
+
+async function adminPassEnter(e) {
     if (e.key == "Enter") {
-        e.preventDefault(); 
-        adminPass=document.getElementById("adminpasswordbox").value
-        alertText("Admin Password Updated")
+        e.preventDefault();
+        let enteredpass = document.getElementById("adminpasswordbox").value;
+        if(enteredpass === "") {
+            adminPass = ""; // an empty pass is technically meant to represent not having one
+            // this isn't stritly necesarry but i dont wanna break anything that might depend on this being true
+        } else {
+            adminPass= await sha256(document.getElementById("adminpasswordbox").value);
+        }
+        alertText("Admin Password Updated");
     }
 }
 
@@ -424,6 +452,7 @@ document.getElementById("adminpasswordbox").addEventListener('keydown',function(
 document.getElementById("admincheckholder").addEventListener('click',function(e){submitPerms(e)});
 document.getElementById("partymode-button").addEventListener('click',function(){controlButton("pm")})
 //sets the fact that clicking a song needs to return its id to the function to find it
+document.getElementById("songlist").addEventListener('keydown', function(e){checkWhatSongWasClicked(e)});
 document.getElementById("songlist").addEventListener('click', function(e){checkWhatSongWasClicked(e)});
 
 //makes the controls look mostly normal on all screens, best solution i could find, idk man
@@ -435,7 +464,6 @@ document.getElementById("darkmode-button").addEventListener('click',function(){t
 //using this allows the creator of the link for, a qr code for example, to set the ip before distributing the code, and it would all work smoothly
 //example (http://192.168.1.100:8000/?ip=192.168.1.100:19054 sets the ip to the same host at the default port)
 //the port must be set manually using this method, but only has to be done once for the url that ends up being shared
-let params = new URLSearchParams(location.search);
 
 //tries the url first, then the cookie, then the default
 ip = params.get("ip")

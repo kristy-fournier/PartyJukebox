@@ -2,7 +2,7 @@ from flask import Flask
 from flask import request
 from flask_cors import CORS
 import sqlite3 as sql
-import vlc,threading,time,random,argparse,dotenv,os
+import vlc,threading,time,random,argparse,dotenv,os,hashlib
 # Argparse Stuff
 parser=argparse.ArgumentParser(description="Options for the Webby Bits")
 # parser.add_argument('-p','--port',help="Port to host on, not the same as the web (client) port",default='19054')
@@ -14,7 +14,7 @@ portTheUserPicked=os.getenv("SERVER_PORT")
 # This is not great design, and the whole "returning string codes" thing is something to add to the todo list
 # I mean returning 200 when no return is necesary i think is fine but we'll see
 ERR_NO_ADMIN = "401"
-ADMIN_PASS = args.admin
+ADMIN_PASS = hashlib.sha256(bytes(args.admin,'utf-8')).hexdigest()
 if not(ADMIN_PASS):
     ADMIN_PASS = None
 # True = everyone, False = admin only. Change in client while in use. 
