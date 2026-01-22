@@ -93,3 +93,13 @@ From left to right:
  - Cookie Popup: JS file found [here](https://cookieconsent.popupsmart.com/src/js/popper.js)
 
 *See `LICENSE.md` for redistribution and editing details.*
+
+### A quick note on the password feature
+
+The exact process of the password's plaintext scope is as follows
+
+- On the server, you type in the password on the server in the console, the python script takes that plaintext, hashes it, then stores that hash as a variable. The plaintext is also technically a variable, but it's not accessed after that initial hashing. (It's also going to be visible in your console history)
+
+- On the client, you type in the password and press enter. A function reads the value of the password box, saves the hash of that password to a variable, and sends it with all your requests. The plaintext is still stored in the inputbox, but if you delete it and don't press enter on the box again, the hash will be stored without keeping the plaintext. (I may change this behaviour so this box auto-clears when enter is pressed, maybe)
+
+None of this is "secure", but it's better than sending plaintext passwords, which is what I was doing before. Hypothetically somebody who intercepted your packet where you sent the password can't get back the original plaintext, just the hash. 

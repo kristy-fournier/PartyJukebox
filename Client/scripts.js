@@ -8,13 +8,17 @@ const VALID_FILE_EXT = ["mp3","flac","wav"];
 const params = new URLSearchParams(location.search);
 
 let darkmodetemp = getCookie("darkmode");
-darkmodetemp = params.get("darkmode")
 if(darkmodetemp === "") {
+    darkmodetemp = params.get("darkmode")
 }
 if (darkmodetemp === "true") {
     // i know this is gonna cause weird blinking
     // maybe the dark mode function should be loaded before any content, would that work?
     // NEW JS FILE ????? exciting stuff
+    // im thinking a few new js files
+    // you know like good design separating stuff
+    // yeah but i need the getCookie function in both the darkmode.js and this one, so im gonna make a 
+    // getcookie.js
     toggleDark("None");
 }
 
