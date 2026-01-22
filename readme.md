@@ -26,7 +26,7 @@ webbyBits.py
 2. Rename `example.env` to `.env` and...
     - Set the location where your audio files are (Default: `./sound/`)
     - Set the LastFM API key (Optional)
-    - Change the port of the webbybits server ("Default )
+    - Change the port of the webbybits server (Default: `19054` )
 3. Run `databaseGenerator.py` (Will try to use LastFM API key)
     * *The `databaseGenerator.py` will index all mp3 files, and save the information to `songDatabase.db`*
     * *If getting images, this process may take a long time with a large amount of mp3 files*
@@ -34,6 +34,7 @@ webbyBits.py
     * *The port can be customized by editing the `.env` file*
     * *You can add an admin password at runtime with* `-a AdminPass` *as an atribute*
         * ***NOTE: Do not reuse ANY password for this, it is hashed but 100% unsecure. The best option is just a random string you write down once***
+        * If this attribute isn't included a random string will be generated as the admin password
         * This is intended for protecting certain features for small closed events, not for public security
 
 You can now connect with the client and use the app as normal. \
@@ -88,12 +89,6 @@ From left to right:
         - *Because the volume can be controlled in the client, for best usage set your device volume as high as possible and turn it down using this slider*
     - QR code to allow others to connect to and use the Remote
 
-## External Credits
- - QR Code Generator: JS file found [here](https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js)
- - Cookie Popup: JS file found [here](https://cookieconsent.popupsmart.com/src/js/popper.js)
-
-*See `LICENSE.md` for redistribution and editing details.*
-
 ### A quick note on the password feature
 
 The exact process of the password's plaintext scope is as follows
@@ -103,3 +98,9 @@ The exact process of the password's plaintext scope is as follows
 - On the client, you type in the password and press enter. A function reads the value of the password box, saves the hash of that password to a variable, and sends it with all your requests. The plaintext is still stored in the inputbox, but if you delete it and don't press enter on the box again, the hash will be stored without keeping the plaintext. (I may change this behaviour so this box auto-clears when enter is pressed, maybe)
 
 None of this is "secure", but it's better than sending plaintext passwords, which is what I was doing before. Hypothetically somebody who intercepted your packet where you sent the password can't get back the original plaintext, just the hash. 
+
+## External Credits
+ - QR Code Generator: JS file found [here](https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js)
+ - Cookie Popup: JS file found [here](https://cookieconsent.popupsmart.com/src/js/popper.js)
+
+*See `LICENSE.md` for redistribution and editing details.*
