@@ -411,6 +411,16 @@ async function submitPerms(e) {
     }
 }
 
+async function clearPlaylist() {
+    let returncode = await getFromServer({control:"clear"},"controls");
+    if(returncode == ERR_NO_ADMIN || returncode == null) {
+        // alertText("Admin Restricted ")
+        // there's an admin restrict alert built into getFromServer
+    } else {
+        alertText("Playlist Cleared!");
+    }
+}
+
 let optionslist = []
 
 //sets all de stuff for buttons
@@ -427,7 +437,8 @@ document.getElementById("volumerange").onchange = async function() {
     // FIX THIS
     let returnValue = await getFromServer({setting:"volume",level:this.value}, "settings")
     if (returnValue == ERR_NO_ADMIN) {
-        alertText("Error: Admin restricted action");
+        // alertText("Error: Admin restricted action");
+        // there's an admin restrict alert built into getFromServer
     } else if (returnValue["volumePassed"] !=0) {
         // i forgot about this, i had to do this because it confused the crap out of me one time
         // vlc doesn't let you change the volume of nothing, which makes sense if you think about it
@@ -441,6 +452,8 @@ document.getElementById("volumerange").onchange = async function() {
     }
     
 }
+
+
 //bit of a cheat code for clearing the alerts when they don't clear normally
 document.getElementById("title").addEventListener('click',function(){document.getElementById("alert").innerHTML = ""})
 document.getElementById("settings-button").addEventListener('click',function(){controlButton("st")});
@@ -455,6 +468,8 @@ document.getElementById("alerttimetextbox").addEventListener('keydown', function
 document.getElementById("adminpasswordbox").addEventListener('keydown',function(e){adminPassEnter(e)});
 document.getElementById("admincheckholder").addEventListener('click',function(e){submitPerms(e)});
 document.getElementById("partymode-button").addEventListener('click',function(){controlButton("pm")})
+document.getElementById("darkmode-button").addEventListener('click',function(){toggleDark()})
+document.getElementById("clear-button").addEventListener('click',function(){clearPlaylist()})
 //sets the fact that clicking a song needs to return its id to the function to find it
 document.getElementById("songlist").addEventListener('keydown', function(e){checkWhatSongWasClicked(e)});
 document.getElementById("songlist").addEventListener('click', function(e){checkWhatSongWasClicked(e)});
@@ -462,7 +477,6 @@ document.getElementById("songlist").addEventListener('click', function(e){checkW
 //makes the controls look mostly normal on all screens, best solution i could find, idk man
 let tempWidth = document.getElementById('controls').clientWidth;
 document.getElementById("controls").style.marginLeft = "-"+String(parseInt(tempWidth/2))+"px";
-document.getElementById("darkmode-button").addEventListener('click',function(){toggleDark()})
 
 //for my use case (my immediate family), they dont know how to set an ip
 //using this allows the creator of the link for, a qr code for example, to set the ip before distributing the code, and it would all work smoothly

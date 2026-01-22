@@ -117,6 +117,13 @@ def playerControls():
                 return "200"
             else:
                 return ERR_NO_ADMIN
+        elif recieveData["control"] == "clear":
+            if ADMIN_PASS == recieveData['password']: # this is only ever allowed with the adminpassword
+                with playlistLock:
+                    playlist.clear()
+                return "200"
+            else:
+                return ERR_NO_ADMIN
         else:
             return "400"
     else:
