@@ -134,6 +134,7 @@ h4 {
 .songlist > .item > h3, .songlist > .item > h4{
     margin-left: 2px;
     margin-right: 2px;
+    margin: 5px;
     word-wrap: break-word;
 }
 
@@ -151,6 +152,12 @@ h4 {
 .go-search {
     width: 20%;
     min-width: 50px;
+}
+
+.lossless-tag {
+    width:16px;
+    padding: 1px;
+    margin-left: auto;
 }
 /* playlist mode stuff */
 

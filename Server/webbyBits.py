@@ -10,10 +10,10 @@ parser.add_argument('-a','--admin',help="Add an admin password to be used in the
 args = parser.parse_args()
 dotenv.load_dotenv()
 portTheUserPicked=os.getenv("SERVER_PORT")
-# Just a note that the return code "401" as of now is used to mean "you don't have the password"
-# This is not great design, and the whole "returning string codes" thing is something to add to the todo list
-# I mean returning 200 when no return is necesary i think is fine but we'll see
-ERR_NO_ADMIN = "401"
+
+ERR_NO_ADMIN = ({"error":"no-admin","data":None},401)
+ERR_200 = ({"error":"OK","data":None},200)
+ERR_MISSING_ARGS = ({"error":"Request missing required arguments","data":None}),400
 if args.admin:
     ADMIN_PASS = hashlib.sha256(bytes(args.admin,'utf-8')).hexdigest()
 else:
@@ -99,7 +99,8 @@ def playQueuedSongs():
                 # the above 2 means this only applies if (a song is playing or paused) and (the queue is empty)
                 playlist.append(result[0][0])
         # check for new songs every second
-        # I just didn't want to eat too much processing looping  
+        # I just didn't want to eat too much processing looping 
+        # this also has another useful affect that skips get "queued" to only 1 per second, that way somebody usually can't skip twice accidentally
         time.sleep(1)
 
 @app.route("/controls", methods=['POST'])
@@ -108,30 +109,31 @@ def playerControls():
     global skipNow
     global partyMode
     recieveData=request.get_json(force=True)
-    if recieveData["control"] != None:
+    try:
         if recieveData["control"] == "play-pause":
             if ADMIN_PASS == recieveData['password'] or controlPerms["PP"]:
                 player.pause()
-                return "200"
+                return ERR_200
             else:
                 return ERR_NO_ADMIN
         elif recieveData["control"] == "skip":
             if ADMIN_PASS == recieveData['password'] or controlPerms["SK"]:
                 skipNow = True
-                return "200"
+                return ERR_200
             else:
                 return ERR_NO_ADMIN
+        # Maybe i should have put this next one in the "settings" section
         elif recieveData["control"] == "clear":
             if ADMIN_PASS == recieveData['password']: # this is only ever allowed with the adminpassword
                 with playlistLock:
                     playlist.clear()
-                return "200"
+                return ERR_200
             else:
                 return ERR_NO_ADMIN
         else:
-            return "400"
-    else:
-        return "400"
+            return {"error":"Not a valid control","data":None},400
+    except KeyError:
+        return ERR_MISSING_ARGS
 
 @app.route("/settings", methods=['POST'])
 def settingsControl():
@@ -140,71 +142,90 @@ def settingsControl():
     global partyMode
     global player
     recieveData = request.get_json(force=True)
-    if recieveData["setting"] == "volume":
-        if ADMIN_PASS == recieveData['password'] or controlPerms["VOL"]:
-            volumePassed = player.audio_set_volume(int(recieveData["level"]))
-            return {"volumePassed":volumePassed}
+    try:
+        if recieveData["setting"] == "volume":
+            if ADMIN_PASS == recieveData['password'] or controlPerms["VOL"]:
+                volumeLevel = int(recieveData["level"])
+                if(volumeLevel <= 100 and volumeLevel >= 0):
+                    volumePassed = player.audio_set_volume(volumeLevel)
+                    return {"error":"ok","data":{"volumePassed":volumePassed}},200
+                else:
+                    return {"error":"Invalid volume level","data":None},422
+            else:
+                return ERR_NO_ADMIN
+        elif recieveData["setting"] == "partymode-toggle":
+            if ADMIN_PASS == recieveData['password'] or controlPerms["PM"]:
+                partyMode = not(partyMode)
+                return ERR_200
+            else:
+                return ERR_NO_ADMIN
+        elif recieveData["setting"] == "perms":
+            if ADMIN_PASS == recieveData["password"]:
+                controlPerms = recieveData["admin"]
+                return ERR_200
+            else:
+                return ERR_NO_ADMIN
+        elif recieveData["setting"] == "getsettings":
+            # probably should have made this a different request type or something but it works
+            return {"error":"ok","data":{"partymode":partyMode,"volume":player.audio_get_volume(),"admin":controlPerms}},200
         else:
-            return ERR_NO_ADMIN
-    elif recieveData["setting"] == "partymode-toggle":
-        if ADMIN_PASS == recieveData['password'] or controlPerms["PM"]:
-            partyMode = not(partyMode)
-            return "200"
-        else:
-            return ERR_NO_ADMIN
-    elif recieveData["setting"] == "perms":
-        if ADMIN_PASS == recieveData["password"] and ADMIN_PASS:
-            #if an adminpass doesn't exist these perms can never be changed
-            controlPerms = recieveData["admin"]
-            return "200"
-        else:
-            return ERR_NO_ADMIN
-    elif recieveData["setting"] == "getsettings":
-        # probably should have made this a different request type or something but it works
-        return {"partymode":partyMode,"volume":player.audio_get_volume(),"admin":controlPerms}
-    else:
-        return "400"
+            return {"error":"Not a valid setting","data":None},400
+    except:
+        return ERR_MISSING_ARGS
 
 @app.route("/search", methods=['POST'])
 def searchSongDB():
     recieveData=request.get_json(force=True)
     fileofDB = sql.connect("songDatabase.db")
     songDatabase = fileofDB.cursor()
-    results = []
-    if (recieveData['search'] == ""):
-        songDatabase.execute("SELECT * FROM virtualSongs")
-        results = songDatabase.fetchall()
-    else:
-        songDatabase.execute("SELECT * FROM virtualSongs WHERE virtualSongs MATCH ?",[recieveData['search']])
-        results = songDatabase.fetchall()
-    tempdata = {}
-    # this is a temporary solution so i dont have to change the client 
-    for i in results:
-        tempdata[i[0]] = {
-            "title": i[1],
-            "artist": i[2],
-            "art": i[3],
-            "length": i[4]
-        }
-    fileofDB.close()
-    return tempdata
+    try:
+        results = []
+        if (recieveData['search'] == ""):
+            songDatabase.execute("SELECT * FROM virtualSongs")
+            results = songDatabase.fetchall()
+        else:
+            songDatabase.execute("SELECT * FROM virtualSongs WHERE virtualSongs MATCH ?",[recieveData['search']])
+            results = songDatabase.fetchall()
+        tempdata = {}
+        # this is a temporary solution so i dont have to change the client 
+        for i in results:
+            tempdata[i[0]] = {
+                "title": i[1],
+                "artist": i[2],
+                "art": i[3],
+                "length": i[4],
+                "lossless":i[5]
+            }
+        fileofDB.close()
+
+        return {"error":"ok","data":tempdata},200
+    except KeyError:
+        fileofDB.close()
+        return ERR_MISSING_ARGS
+    except sql.OperationalError:
+        fileofDB.close()
+        return ({"error":"Invalid search, sorry!","data":None},422)
+
 
 @app.route("/songadd", methods=["POST"])
 def songadd():
     recieveData=request.get_json(force=True)
-    if (ADMIN_PASS and ADMIN_PASS == recieveData['password']) or controlPerms["AS"]:
-        # Password exists and is correct, or it's not restricted
-        # if (recieveData['song'] in playlist):
-        #     return {"error":"song-in-queue"}
-        # else:
-        # Right now the above is disabled since i want to make it optional first
-        # probably with a checkbox like the other admin controls
-        if True:
-            queueSong(recieveData['song'])
-            return "200"
-    else:
-        # the password is incorrect (technically a password not existing falls into the above case because controlPerms is never changed)
-        return ERR_NO_ADMIN
+    try:
+        if (ADMIN_PASS == recieveData['password']) or controlPerms["AS"]:
+            # Password exists and is correct, or it's not restricted
+            # if (recieveData['song'] in playlist):
+            #     return {"error":"song-in-queue"}
+            # else:
+            # Right now the above is disabled since i want to make it optional first
+            # probably with a checkbox like the other admin controls
+            if True:
+                queueSong(recieveData['song'])
+                return ERR_200
+        else:
+            # the password is incorrect (technically a password not existing falls into the above case because controlPerms is never changed)
+            return ERR_NO_ADMIN
+    except KeyError:
+        return ERR_MISSING_ARGS
 
 @app.route("/playlist", methods=["POST"])
 def getPlaylist():
@@ -238,7 +259,8 @@ def getPlaylist():
         }
         tempPlaylist.append({i:k})
     fileofDB.close()
-    return tempPlaylist
+    
+    return {"error":"ok","data":tempPlaylist}
 
 if __name__ == "__main__":
     # There's not really a whole lot of point to a main function for something like this, you'd never use any of these methods
