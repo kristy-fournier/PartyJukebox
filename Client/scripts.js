@@ -47,21 +47,24 @@ async function getFromServer(bodyInfo, source="",password=adminPass) {
             }
             });
         
-        const data = await response.json();
+        let data = await response.json(); // original json
         if (response.status == ERR_NO_ADMIN) {
             // im suprised i didn't comment on this already but this is kinda lame desing
             // its not wrong but you know
             // it is easy which i like
             // and it overrides any other non-async alerts which is nice
             alertText("Error: Admin restricted action")
-        } else if(response.status !== 200){
+        } else if(!response.ok){
             alertText("Error: "+data.error);
         }
+        // we add some information from the response just in case it is needed
+        data["ok"] = response.ok;
         data["status"] = response.status;
+        // console.log(data);
         return await data;
     } catch(e) {
-        console.log("error print here:");
-        console.log(e);
+        // console.log("error print here:");
+        // console.log(e);
         if (e == "TypeError: Failed to fetch"){
             alertText("Error: Can't Connect to Server (is the ip set?)")
         } else {
@@ -91,7 +94,6 @@ function getCookie(cname) {
     }
 //someone more organised than me would have set all these html elements to variables so they dont have to get them 50 times
 // also someone who likes things not being dumb more than me would have separated the client and server buttons
-let timer = null;
 async function controlButton(buttonType) {
     if (buttonType == "pp") { // Play-Pause button
         getFromServer({control: "play-pause"}, "controls")
@@ -106,9 +108,6 @@ async function controlButton(buttonType) {
         document.getElementById("playlist-mode").style.display = "block";
         document.getElementById("songlist-mode").style.display = "none";
         document.getElementById("settings-mode").style.display = "none";
-        timer = setInterval(() => {
-            
-        })
         generateVisualPlaylist();
     } else if (buttonType == "se") { //SearchMode button
         document.getElementById("songlist").innerHTML = "<h1>Search to find songs!</h1>";
