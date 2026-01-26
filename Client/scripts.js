@@ -2,7 +2,7 @@
 let ip;
 let alertTime = 2;
 let adminPass = "";
-const ERR_NO_ADMIN = "401"; // gonna use this later to refactor
+const ERR_NO_ADMIN = 401; // gonna use this later to refactor
 const VALID_FILE_EXT = ["mp3","flac","wav"];
 
 const params = new URLSearchParams(location.search);
@@ -46,8 +46,9 @@ async function getFromServer(bodyInfo, source="",password=adminPass) {
                 "Content-type": "application/json; charset=UTF-8"
             }
             });
+        
         const data = await response.json();
-        if (data == ERR_NO_ADMIN) {
+        if (response.status == ERR_NO_ADMIN) {
             // im suprised i didn't comment on this already but this is kinda lame desing
             // its not wrong but you know
             // it is easy which i like
@@ -56,9 +57,11 @@ async function getFromServer(bodyInfo, source="",password=adminPass) {
         }
         return await data;
     } catch(e) {
+        console.log("error print here:");
+        console.log(e);
         if (e == "TypeError: Failed to fetch"){
             alertText("Error: Can't Connect to Server (is the ip set?)")
-        } else if(e == "") {
+        } else if(e === "") {
 
         } else {
             alertText("Error: " + e);
@@ -155,6 +158,13 @@ async function searchSongs(searchTerm){
         newItem.appendChild(image);
         newItem.appendChild(head3);
         newItem.appendChild(head4);
+        // I like this concept but i'm leaving it out for now
+        // if(currentSongInJSON.lossless === 1) {
+        //     let losslesstag = document.createElement("p");
+        //     losslesstag.textContent = "Ⓛ";
+        //     losslesstag.classList.add("lossless-tag");
+        //     newItem.appendChild(losslesstag);
+        // }
         document.getElementById("songlist").appendChild(newItem);
     
     } 
@@ -301,7 +311,7 @@ async function generateVisualPlaylist(conditions="") {
             let timeLeft =document.createElement("h5");
             timeLeft.style.fontWeight = 100;
             try {
-                if (i == 0) {
+                if (i == 0) { // Only the first song in the loop gets a time
                     head5.innerHTML="Playing";
                     if ((conditions != "skip-button")) {
                         let mins = Math.floor(playlist[i]["time"]/60);
@@ -313,7 +323,7 @@ async function generateVisualPlaylist(conditions="") {
                 }
             }catch(err){
                 // i dont know why there's a try catch here but i'm leaving it i dont want to break something
-                console.log(err)
+                console.error(err)
             }
             let textdiv = document.createElement("div")
             textdiv.className="text"
@@ -332,11 +342,9 @@ async function submitSong(songid) {
     let returncode = await getFromServer({song: songid}, "songadd");
     if(returncode == ERR_NO_ADMIN) {
         // right now the error is alerted in getFromServer, maybe will change that
-    }
-    else if(returncode["error"]=="song-in-queue") {
+    } else if(returncode["error"]=="song-in-queue") {
         alertText("That song's about to play! Hang on!")
-    }
-    else {
+    } else {
         alertText("Added to Queue");
     }
 }
@@ -346,11 +354,10 @@ function checkWhatSongWasClicked(e) {
         if ((itemId.length-itemId.lastIndexOf("image") == 5) && itemId.lastIndexOf("image")!=-1) {
             itemId = itemId.slice(0,-6)
         }
+        let filenameSep = itemId.split('.')
         //i feel like later kristy won't apreciate this
         //one of my files was "file.MP3" so it didn't work
         //windows be like
-        let filenameSep = itemId.split('.')
-        
         if (VALID_FILE_EXT.includes(filenameSep[filenameSep.length-1].toLowerCase())) {
             submitSong(itemId);
         } 
@@ -443,6 +450,8 @@ document.getElementById("volumerange").onchange = async function() {
     if (returnValue == ERR_NO_ADMIN) {
         // alertText("Error: Admin restricted action");
         // there's an admin restrict alert built into getFromServer
+        // i wanna put the volume slider back to where it was but idk a good way to keep the previous volume
+        checkSettings(false);
     } else if (returnValue["volumePassed"] !=0) {
         // i forgot about this, i had to do this because it confused the crap out of me one time
         // vlc doesn't let you change the volume of nothing, which makes sense if you think about it

@@ -10,10 +10,9 @@ parser.add_argument('-a','--admin',help="Add an admin password to be used in the
 args = parser.parse_args()
 dotenv.load_dotenv()
 portTheUserPicked=os.getenv("SERVER_PORT")
-# Just a note that the return code "401" as of now is used to mean "you don't have the password"
-# This is not great design, and the whole "returning string codes" thing is something to add to the todo list
-# I mean returning 200 when no return is necesary i think is fine but we'll see
-ERR_NO_ADMIN = "401"
+
+ERR_NO_ADMIN = ({"error":"no-admin"},401)
+ERR_200 = ({"error":"OK"},200)
 if args.admin:
     ADMIN_PASS = hashlib.sha256(bytes(args.admin,'utf-8')).hexdigest()
 else:
@@ -99,7 +98,8 @@ def playQueuedSongs():
                 # the above 2 means this only applies if (a song is playing or paused) and (the queue is empty)
                 playlist.append(result[0][0])
         # check for new songs every second
-        # I just didn't want to eat too much processing looping  
+        # I just didn't want to eat too much processing looping 
+        # this also has another useful affect that skips get "queued" to only 1 per second, that way somebody usually can't skip twice accidentally
         time.sleep(1)
 
 @app.route("/controls", methods=['POST'])
@@ -112,26 +112,27 @@ def playerControls():
         if recieveData["control"] == "play-pause":
             if ADMIN_PASS == recieveData['password'] or controlPerms["PP"]:
                 player.pause()
-                return "200"
+                return ERR_200
             else:
                 return ERR_NO_ADMIN
         elif recieveData["control"] == "skip":
             if ADMIN_PASS == recieveData['password'] or controlPerms["SK"]:
                 skipNow = True
-                return "200"
+                return ERR_200
             else:
                 return ERR_NO_ADMIN
+        # Maybe i should have put this next one in the "settings" section
         elif recieveData["control"] == "clear":
             if ADMIN_PASS == recieveData['password']: # this is only ever allowed with the adminpassword
                 with playlistLock:
                     playlist.clear()
-                return "200"
+                return ERR_200
             else:
                 return ERR_NO_ADMIN
         else:
-            return "400"
+            return {"error":"Not a valid control"},400
     else:
-        return "400"
+        return {"error":"No control sent"},400
 
 @app.route("/settings", methods=['POST'])
 def settingsControl():
@@ -149,14 +150,13 @@ def settingsControl():
     elif recieveData["setting"] == "partymode-toggle":
         if ADMIN_PASS == recieveData['password'] or controlPerms["PM"]:
             partyMode = not(partyMode)
-            return "200"
+            return ERR_200
         else:
             return ERR_NO_ADMIN
     elif recieveData["setting"] == "perms":
-        if ADMIN_PASS == recieveData["password"] and ADMIN_PASS:
-            #if an adminpass doesn't exist these perms can never be changed
+        if ADMIN_PASS == recieveData["password"]:
             controlPerms = recieveData["admin"]
-            return "200"
+            return ERR_200
         else:
             return ERR_NO_ADMIN
     elif recieveData["setting"] == "getsettings":
@@ -184,7 +184,8 @@ def searchSongDB():
             "title": i[1],
             "artist": i[2],
             "art": i[3],
-            "length": i[4]
+            "length": i[4],
+            "lossless":i[5]
         }
     fileofDB.close()
     return tempdata
@@ -201,7 +202,7 @@ def songadd():
         # probably with a checkbox like the other admin controls
         if True:
             queueSong(recieveData['song'])
-            return "200"
+            return ERR_200
     else:
         # the password is incorrect (technically a password not existing falls into the above case because controlPerms is never changed)
         return ERR_NO_ADMIN
