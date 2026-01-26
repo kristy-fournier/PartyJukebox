@@ -20,6 +20,7 @@ The server side consists of 3 files:
 sound/
 databaseGenerator.py
 webbyBits.py
+.env
 ```
 
 1. Place mp3 files in the `sound/` folder

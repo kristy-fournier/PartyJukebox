@@ -206,7 +206,7 @@ def searchSongDB():
     except sql.OperationalError as e:
         print(e)
         fileofDB.close()
-        return ({"error":"Invalid search, sorry!","data":None},422)
+        return ({"error":"Database error (Try another search?)","data":None},500)
 
 
 @app.route("/songadd", methods=["POST"])
