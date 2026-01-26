@@ -38,7 +38,6 @@ async function getFromServer(bodyInfo, source="",password=adminPass) {
             // the currently set password is always included in every request
             bodyInfo["password"] = password;
         }
-        // console.log(bodyInfo);
         const response = await fetch("http://"+ip+"/"+source, {
             method: "POST",
             body: JSON.stringify(bodyInfo),
