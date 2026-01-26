@@ -180,11 +180,12 @@ def searchSongDB():
     songDatabase = fileofDB.cursor()
     try:
         results = []
+        # print(recieveData["search"])
         if (recieveData['search'] == ""):
             songDatabase.execute("SELECT * FROM virtualSongs")
             results = songDatabase.fetchall()
         else:
-            songDatabase.execute("SELECT * FROM virtualSongs WHERE virtualSongs MATCH ?",[recieveData['search']])
+            songDatabase.execute("SELECT * FROM virtualSongs WHERE virtualSongs MATCH ?",['"' + recieveData['search']+'"'])
             results = songDatabase.fetchall()
         tempdata = {}
         # this is a temporary solution so i dont have to change the client 
@@ -202,7 +203,8 @@ def searchSongDB():
     except KeyError:
         fileofDB.close()
         return ERR_MISSING_ARGS
-    except sql.OperationalError:
+    except sql.OperationalError as e:
+        print(e)
         fileofDB.close()
         return ({"error":"Invalid search, sorry!","data":None},422)
 

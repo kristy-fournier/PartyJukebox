@@ -1,4 +1,4 @@
-/* testing */
+/* dark mode stuff */
 
 .dark-mode {
     --bg-main: #333333;
@@ -37,8 +37,9 @@ input, button {
 body {
     background-color: var(--bg-main);
 }
+
 * {
-    font-family: 'arial';
+    font-family: 'Work Sans','Arial',sans-serif;
 }
 
 .italic {
