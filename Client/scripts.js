@@ -2,7 +2,7 @@
 let ip;
 let alertTime = 2;
 let adminPass = "";
-const ERR_NO_ADMIN = 401; // gonna use this later to refactor
+const ERR_NO_ADMIN = 401;
 const VALID_FILE_EXT = ["mp3","flac","wav"];
 
 const params = new URLSearchParams(location.search);
@@ -54,12 +54,15 @@ async function getFromServer(bodyInfo, source="",password=adminPass) {
             // it is easy which i like
             // and it overrides any other non-async alerts which is nice
             alertText("Error: Admin restricted action")
+        } else if(response.status !== 200){
+            alertText("Error: "+data.error);
         }
+        data["status"] = response.status;
         return await data;
     } catch(e) {
         console.log("error print here:");
         console.log(e);
-        if (e.contains("TypeError: Failed to fetch")){
+        if (e == "TypeError: Failed to fetch"){
             alertText("Error: Can't Connect to Server (is the ip set?)")
         } else {
             alertText("Error: " + e);
@@ -87,6 +90,8 @@ function getCookie(cname) {
     return "";
     }
 //someone more organised than me would have set all these html elements to variables so they dont have to get them 50 times
+// also someone who likes things not being dumb more than me would have separated the client and server buttons
+let timer = null;
 async function controlButton(buttonType) {
     if (buttonType == "pp") { // Play-Pause button
         getFromServer({control: "play-pause"}, "controls")
@@ -101,6 +106,9 @@ async function controlButton(buttonType) {
         document.getElementById("playlist-mode").style.display = "block";
         document.getElementById("songlist-mode").style.display = "none";
         document.getElementById("settings-mode").style.display = "none";
+        timer = setInterval(() => {
+            
+        })
         generateVisualPlaylist();
     } else if (buttonType == "se") { //SearchMode button
         document.getElementById("songlist").innerHTML = "<h1>Search to find songs!</h1>";
@@ -246,7 +254,8 @@ async function checkSettings(skipServer=false) {
         }
     }
     //ping the server here
-    x = await getFromServer({setting: "getsettings"}, "settings");
+    data = await getFromServer({setting: "getsettings"}, "settings");
+    x = data["data"];
     if (!(skipServer) || partyButtonState=="N/A") {
         if (x["partymode"] == false) {
             document.getElementById("partymode-button").innerHTML = "Off";
@@ -271,7 +280,8 @@ async function checkSettings(skipServer=false) {
 
 async function generateVisualPlaylist(conditions="") {
     document.getElementById("playlist").innerHTML = "<h1 id=\"playlist-alert\"></h1>";
-    playlist = await getFromServer(null, "playlist");
+    data = await getFromServer(null, "playlist");
+    playlist = data["data"];
     playlist = Object.values(playlist).map(obj => {
         const filename = Object.keys(obj)[0]; // Get the filename
         const songData = obj[filename]; // Get the song metadata
@@ -446,18 +456,17 @@ document.getElementById("volumerange").onchange = async function() {
     // there is no reason for this not to be a defined function
     // FIX THIS
     let returnValue = await getFromServer({setting:"volume",level:this.value}, "settings")
-    if (returnValue == ERR_NO_ADMIN) {
+    if (returnValue["status"] == ERR_NO_ADMIN) {
         // alertText("Error: Admin restricted action");
         // there's an admin restrict alert built into getFromServer
         // i wanna put the volume slider back to where it was but idk a good way to keep the previous volume
         checkSettings(false);
-    } else if (returnValue["volumePassed"] !=0) {
+    } else if (returnValue["data"]["volumePassed"] !=0) {
         // i forgot about this, i had to do this because it confused the crap out of me one time
         // vlc doesn't let you change the volume of nothing, which makes sense if you think about it
         alertText("Nothing is playing")
         document.getElementById("volumerange").value = -1
-    }
-    else if (this.value == 0) {
+    } else if (this.value == 0) {
         alertText("The volume is now set to 0 (Pause?)")
     } else {
         alertText("The volume is now set to " + this.value.toString())

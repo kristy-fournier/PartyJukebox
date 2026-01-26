@@ -143,11 +143,12 @@ def settingsControl():
     recieveData = request.get_json(force=True)
     if recieveData["setting"] == "volume":
         if ADMIN_PASS == recieveData['password'] or controlPerms["VOL"]:
-            if(recieveData["level"] <= 100 and recieveData["level"] >= 0):
-                volumePassed = player.audio_set_volume(int(recieveData["level"]))
+            volumeLevel = int(recieveData["level"])
+            if(volumeLevel <= 100 and volumeLevel >= 0):
+                volumePassed = player.audio_set_volume(volumeLevel)
                 return {"error":"ok","data":{"volumePassed":volumePassed}},200
             else:
-                return {"error":"Invalid volume level","data":None}
+                return {"error":"Invalid volume level","data":None},422
         else:
             return ERR_NO_ADMIN
     elif recieveData["setting"] == "partymode-toggle":
@@ -166,7 +167,7 @@ def settingsControl():
         # probably should have made this a different request type or something but it works
         return {"error":"ok","data":{"partymode":partyMode,"volume":player.audio_get_volume(),"admin":controlPerms}},200
     else:
-        return {"error":"Not a valid setting","data":None},400
+        return {"error":"Not a valid setting","data":None},422
 
 @app.route("/search", methods=['POST'])
 def searchSongDB():
