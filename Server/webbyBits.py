@@ -11,8 +11,8 @@ args = parser.parse_args()
 dotenv.load_dotenv()
 portTheUserPicked=os.getenv("SERVER_PORT")
 
-ERR_NO_ADMIN = ({"error":"no-admin"},401)
-ERR_200 = ({"error":"OK"},200)
+ERR_NO_ADMIN = ({"error":"no-admin","data":None},401)
+ERR_200 = ({"error":"OK","data":None},200)
 if args.admin:
     ADMIN_PASS = hashlib.sha256(bytes(args.admin,'utf-8')).hexdigest()
 else:
@@ -130,9 +130,9 @@ def playerControls():
             else:
                 return ERR_NO_ADMIN
         else:
-            return {"error":"Not a valid control"},400
+            return {"error":"Not a valid control","data":None},400
     else:
-        return {"error":"No control sent"},400
+        return {"error":"No control sent","data":None},400
 
 @app.route("/settings", methods=['POST'])
 def settingsControl():
@@ -143,8 +143,11 @@ def settingsControl():
     recieveData = request.get_json(force=True)
     if recieveData["setting"] == "volume":
         if ADMIN_PASS == recieveData['password'] or controlPerms["VOL"]:
-            volumePassed = player.audio_set_volume(int(recieveData["level"]))
-            return {"volumePassed":volumePassed}
+            if(recieveData["level"] <= 100 and recieveData["level"] >= 0):
+                volumePassed = player.audio_set_volume(int(recieveData["level"]))
+                return {"error":"ok","data":{"volumePassed":volumePassed}},200
+            else:
+                return {"error":"Invalid volume level","data":None}
         else:
             return ERR_NO_ADMIN
     elif recieveData["setting"] == "partymode-toggle":
@@ -161,9 +164,9 @@ def settingsControl():
             return ERR_NO_ADMIN
     elif recieveData["setting"] == "getsettings":
         # probably should have made this a different request type or something but it works
-        return {"partymode":partyMode,"volume":player.audio_get_volume(),"admin":controlPerms}
+        return {"error":"ok","data":{"partymode":partyMode,"volume":player.audio_get_volume(),"admin":controlPerms}},200
     else:
-        return "400"
+        return {"error":"Not a valid setting","data":None},400
 
 @app.route("/search", methods=['POST'])
 def searchSongDB():
@@ -188,12 +191,13 @@ def searchSongDB():
             "lossless":i[5]
         }
     fileofDB.close()
-    return tempdata
+
+    return {"error":"ok","data":tempdata},200
 
 @app.route("/songadd", methods=["POST"])
 def songadd():
     recieveData=request.get_json(force=True)
-    if (ADMIN_PASS and ADMIN_PASS == recieveData['password']) or controlPerms["AS"]:
+    if (ADMIN_PASS == recieveData['password']) or controlPerms["AS"]:
         # Password exists and is correct, or it's not restricted
         # if (recieveData['song'] in playlist):
         #     return {"error":"song-in-queue"}
@@ -239,7 +243,8 @@ def getPlaylist():
         }
         tempPlaylist.append({i:k})
     fileofDB.close()
-    return tempPlaylist
+    
+    return {"error":"ok","data":tempPlaylist}
 
 if __name__ == "__main__":
     # There's not really a whole lot of point to a main function for something like this, you'd never use any of these methods

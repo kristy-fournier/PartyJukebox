@@ -59,10 +59,8 @@ async function getFromServer(bodyInfo, source="",password=adminPass) {
     } catch(e) {
         console.log("error print here:");
         console.log(e);
-        if (e == "TypeError: Failed to fetch"){
+        if (e.contains("TypeError: Failed to fetch")){
             alertText("Error: Can't Connect to Server (is the ip set?)")
-        } else if(e === "") {
-
         } else {
             alertText("Error: " + e);
         }
@@ -133,7 +131,8 @@ function searchSongsEnter(e) {
 
 async function searchSongs(searchTerm){
     document.getElementById("songlist").innerHTML = ""
-    searchResults = await getFromServer({search:searchTerm},"search").then()
+    let fetchResults = await getFromServer({search:searchTerm},"search").then();
+    let searchResults = fetchResults.data;
     //generate the visual song list
     for(var fileName in searchResults) {
         let currentSongInJSON = searchResults[fileName]
