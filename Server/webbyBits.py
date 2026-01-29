@@ -163,6 +163,7 @@ def settingsControl():
         elif recieveData["setting"] == "perms":
             if ADMIN_PASS == recieveData["password"]:
                 controlPerms = recieveData["admin"]
+                print(recieveData["admin"])
                 return ERR_200
             else:
                 return ERR_NO_ADMIN
@@ -224,7 +225,8 @@ def songadd():
         else:
             # the password is incorrect (technically a password not existing falls into the above case because controlPerms is never changed)
             return ERR_NO_ADMIN
-    except KeyError:
+    except KeyError as e:
+        print(e)
         return ERR_MISSING_ARGS
 
 @app.route("/playlist", methods=["POST"])

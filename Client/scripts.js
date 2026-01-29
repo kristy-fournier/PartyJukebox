@@ -100,9 +100,11 @@ async function controlButton(buttonType) {
     if (buttonType == "pp") { // Play-Pause button
         getFromServer({control: "play-pause"}, "controls")
     } else if (buttonType == "sk") { // Skip button
-        getFromServer({control: "skip"}, "controls")
-        if (document.getElementById("playlist-mode").style.display == "block") {
-            generateVisualPlaylist("skip-button");
+        let returnCode = getFromServer({control: "skip"}, "controls");
+        if(returnCode["ok"]) {
+            if (document.getElementById("playlist-mode").style.display == "block") {
+                generateVisualPlaylist("skip-button");
+            }
         }
     } else if (buttonType == "pl") { // Playlist button
         document.getElementById("songlist").innerHTML = "";
@@ -284,6 +286,7 @@ async function checkSettings(skipServer=false) {
     document.getElementById("playpausesettingcheckbox").checked = currentAdminPerms["PP"];
     document.getElementById("partymodesettingcheckbox").checked = currentAdminPerms["PM"];
     document.getElementById("volumechangesettingcheckbox").checked = currentAdminPerms["VOL"];
+    document.getElementById("duplicateallowesettingcheckbox").checked = currentAdminPerms["DUP"];
 }
 
 async function generateVisualPlaylist(conditions="") {
@@ -430,8 +433,9 @@ async function submitPerms(e) {
     tempData["AS"] = document.getElementById("addsongsettingcheckbox").checked;
     tempData["PM"] = document.getElementById("partymodesettingcheckbox").checked;
     tempData["VOL"] = document.getElementById("volumechangesettingcheckbox").checked;
+    tempData["DUP"] = document.getElementById("duplicateallowesettingcheckbox").checked;
     let returncode = await getFromServer({"setting":"perms","admin":tempData},"settings");
-    if (returncode == ERR_NO_ADMIN || returncode == null) {
+    if (!(returncode["ok"])) {
         // if you aren't allowed to check the box then toggle it again
         // its not perfect if you spam click, but it gets the point across to the user
         let clickedBox = e.srcElement;
