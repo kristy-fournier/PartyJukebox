@@ -28,7 +28,8 @@ controlPerms = {
     "SK":True, 
     "AS":True, 
     "PM":True, 
-    "VOL":True 
+    "VOL":True,
+    "DUP":True # Not implemented, allow duplicate songs in queue
 }
 
 fileofDB = sql.connect("songDatabase.db")
@@ -215,12 +216,9 @@ def songadd():
     try:
         if (ADMIN_PASS == recieveData['password']) or controlPerms["AS"]:
             # Password exists and is correct, or it's not restricted
-            # if (recieveData['song'] in playlist):
-            #     return {"error":"song-in-queue"}
-            # else:
-            # Right now the above is disabled since i want to make it optional first
-            # probably with a checkbox like the other admin controls
-            if True:
+            if not(controlPerms["DUP"]) and (recieveData['song'] in playlist) and not(ADMIN_PASS == recieveData['password']):
+                return {"error":"This song is already in the queue, hang on!","data":None},409
+            else:
                 queueSong(recieveData['song'])
                 return ERR_200
         else:

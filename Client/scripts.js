@@ -8,9 +8,12 @@ const VALID_FILE_EXT = ["mp3","flac","wav"];
 const params = new URLSearchParams(location.search);
 
 let darkmodetemp = getCookie("darkmode");
+if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    darkmodetemp = "true";
+}
 if(darkmodetemp === "") {
     darkmodetemp = params.get("darkmode")
-}
+} 
 if (darkmodetemp === "true") {
     // i know this is gonna cause weird blinking
     // maybe the dark mode function should be loaded before any content, would that work?
@@ -64,7 +67,7 @@ async function getFromServer(bodyInfo, source="",password=adminPass) {
     } catch(e) {
         // console.log("error print here:");
         // console.log(e);
-        if (e == "TypeError: Failed to fetch"){
+        if (e.toString().contains("TypeError: Failed to fetch")){
             alertText("Error: Can't Connect to Server (is the ip set?)")
         } else {
             alertText("Error: " + e);
@@ -194,7 +197,11 @@ function alertTimeSet(time) {
 
 function ipSetEnter(e){
     if (e.key == "Enter") {
-        e.preventDefault(); 
+        e.preventDefault();
+        // why on gosh's green earth am i sending a value here?
+        // im gonna get rid of all these individual "enter" dectectors and do something
+        // like i did for the keyboard selection of elements
+        // basically just if(e==click || e.key == enter)
         ipSetter(document.getElementById("iptextbox").value)
     }
 }
@@ -222,13 +229,16 @@ function ipSetter(){
 
 function qrCodeGenerate() {
     let tempURL = "http://" + document.location.href.split("/")[2] + "/?ip=" + ip;
-    document.getElementById("qrcode").innerHTML = ""
+    document.getElementById("qrcode").innerHTML = "";
+    // get the current foreground and background
+    let dark = window.getComputedStyle(document.body).getPropertyValue("--text-color");
+    let light = window.getComputedStyle(document.body).getPropertyValue("--bg-main");
     new QRCode(document.getElementById("qrcode"), {
         text: tempURL,
         width: 256,
         height: 256,
-        colorDark : "#000000",
-        colorLight : "#eeeeee",
+        colorDark : dark,
+        colorLight : light,
         correctLevel : QRCode.CorrectLevel.H
     });
 }
@@ -349,8 +359,8 @@ async function submitSong(songid) {
     let returncode = await getFromServer({song: songid}, "songadd");
     if(returncode == ERR_NO_ADMIN) {
         // right now the error is alerted in getFromServer, maybe will change that
-    } else if(returncode["error"]=="song-in-queue") {
-        alertText("That song's about to play! Hang on!")
+    } else if(returncode["status"]!==200) {
+        alertText("That song's already in the queue! Hang on!")
     } else {
         alertText("Added to Queue");
     }
@@ -382,7 +392,7 @@ function toggleDark(e) {
         document.getElementById("darkmode-button").innerHTML = "Off";
         x.remove("dark-mode");
     }
-    
+    qrCodeGenerate();
 }
 
 async function sha256(message) {
