@@ -27,3 +27,4 @@
     * currently the screen just grabs the "elapsed time" once when it is loaded
     * websockets can re-update clients
     * not actually sure if i can CORS-socket but we're sure gonna try
+    - [ ] Set a timeout to change the time

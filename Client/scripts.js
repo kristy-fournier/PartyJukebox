@@ -5,6 +5,10 @@ let adminPass = "";
 const ERR_NO_ADMIN = 401;
 const VALID_FILE_EXT = ["mp3","flac","wav"];
 
+let playlistTimeTimer=null;
+let playlistElapsedSeconds=0;
+let playlistSongLength=-1;
+
 const params = new URLSearchParams(location.search);
 
 let darkmodetemp = getCookie("darkmode");
@@ -97,10 +101,12 @@ function getCookie(cname) {
 //someone more organised than me would have set all these html elements to variables so they dont have to get them 50 times
 // also someone who likes things not being dumb more than me would have separated the client and server buttons
 async function controlButton(buttonType) {
+    clearInterval(playlistTimeTimer);
     if (buttonType == "pp") { // Play-Pause button
         getFromServer({control: "play-pause"}, "controls")
     } else if (buttonType == "sk") { // Skip button
-        let returnCode = getFromServer({control: "skip"}, "controls");
+        let returnCode = await getFromServer({control: "skip"}, "controls");
+        console.log(returnCode["ok"])
         if(returnCode["ok"]) {
             if (document.getElementById("playlist-mode").style.display == "block") {
                 generateVisualPlaylist("skip-button");
@@ -245,6 +251,21 @@ function qrCodeGenerate() {
     });
 }
 
+async function displayElapsedPlaylistTime(elapsed=0,length=0) {
+    if(Math.floor(elapsed) === Math.floor(length)){
+        console.log("somethingShouldBeHappening")
+        playlistElapsedSeconds = 0;
+        generateVisualPlaylist();
+    }
+    let mins = Math.floor(elapsed/60);
+    let secs = Math.floor(elapsed%60);
+    let durMins = Math.floor(length/60);
+    let durSecs = Math.floor(length%60);
+    let timeLeft = document.getElementById("elapsed-time-display");
+    timeLeft.innerHTML = mins.toString() +":"+ secs.toLocaleString('en-US', {minimumIntegerDigits: 2,useGrouping: false}) + "/"+ durMins.toString()+":"+durSecs.toLocaleString('en-US', {minimumIntegerDigits: 2,useGrouping: false});
+    playlistElapsedSeconds++;
+}
+
 async function checkSettings(skipServer=false) {
     //check client stuff first so if the server doesn't exist it can still be changed and seen
     if (ip.slice(-5)=="19054") {
@@ -299,6 +320,7 @@ async function generateVisualPlaylist(conditions="") {
         return { filename, ...songData }; // Merge filename with song data
       });
     if (playlist.length==0){
+        clearInterval(playlistTimeTimer);
         document.getElementById("playlist-alert").innerHTML = "Nothing's Queued..."
     } else {
         if (conditions=="skip-button") {
@@ -330,20 +352,11 @@ async function generateVisualPlaylist(conditions="") {
             let head5 = document.createElement("h5");
             let timeLeft =document.createElement("h5");
             timeLeft.style.fontWeight = 100;
-            try {
-                if (i == 0) { // Only the first song in the loop gets a time
-                    head5.innerHTML="Playing";
-                    if ((conditions != "skip-button")) {
-                        let mins = Math.floor(playlist[i]["time"]/60);
-                        let secs = Math.floor(playlist[i]["time"]%60);
-                        let durMins = Math.floor(playlist[i]["length"]/60);
-                        let durSecs = Math.floor(playlist[i]["length"]%60);
-                        timeLeft.innerHTML = mins.toString() +":"+ secs.toLocaleString('en-US', {minimumIntegerDigits: 2,useGrouping: false}) + "/"+ durMins.toString()+":"+durSecs.toLocaleString('en-US', {minimumIntegerDigits: 2,useGrouping: false});
-                    }
-                }
-            }catch(err){
-                // i dont know why there's a try catch here but i'm leaving it i dont want to break something
-                console.error(err)
+            if(i== 0) {
+                // they can all have the text, doesn't really matter, but only the first one 
+                // should get the ids since its the one we want to mess with
+                head5.id = "playing-indicator-text";
+                timeLeft.id = "elapsed-time-display";
             }
             let textdiv = document.createElement("div")
             textdiv.className="text"
@@ -354,8 +367,25 @@ async function generateVisualPlaylist(conditions="") {
             textdiv.appendChild(head5);
             newItem.appendChild(textdiv);
             document.getElementById("playlist").appendChild(newItem);
+            try {
+                if (i == 0) { // Only the first song in the loop gets a time
+                    head5.innerHTML="Playing";
+                    if ((conditions != "skip-button")) {
+                        playlistElapsedSeconds = playlist[0]["time"];
+                        playlistSongLength = playlist[0]["length"];
+                        displayElapsedPlaylistTime(playlistElapsedSeconds,playlistSongLength);
+                        clearInterval(playlistTimeTimer);
+                        playlistTimeTimer = setInterval(() => {
+                            displayElapsedPlaylistTime(playlistElapsedSeconds,playlistSongLength);
+                        },1000)
+                    }
+                }
+            }catch(err){
+                // i dont know why there's a try catch here but i'm leaving it i dont want to break something
+                console.error(err)
+            }
         }
-    }  
+    }
 }
 
 async function submitSong(songid) {
