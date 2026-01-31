@@ -1,7 +1,5 @@
 ## Wishlist
 *Features I would like to add, will be completed in any order*
-- [x] Admin password
-    * Allows restricting certain features and changing permissions on the fly on the client
 - [ ] Refactoring existing code
     - [x] Remove old comments
     - [ ] Update the SQL -> Server -> Client pipeline when searching and building playlist
@@ -24,7 +22,11 @@
         - Potentially a "redemption code" system, which can be tracked client side
     - All of this is very hackable without a server-side login.
 - [ ] Websockets / some method of updating the time remaining to any client on the playlist screen
-    * currently the screen just grabs the "elapsed time" once when it is loaded
-    * websockets can re-update clients
-    * not actually sure if i can CORS-socket but we're sure gonna try
-    - [ ] Set a timeout to change the time
+    * This is implemented in a very broken way right now
+    - [x] Set a timeout to change the time (to start)
+    - [x] Send updates to the playlist in real time when songs are added
+        * This is only kind of done, still needs work
+        - [ ] Update the playlist's html without destroying it (create 1 new element)
+    - [x] Tell clients looking at the playlist when the song has been paused (so they can pause the local timers)
+        * Again, still needs work
+        * This is currently solved by just sending the time and "playing status" once a second-ish

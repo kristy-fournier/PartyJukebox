@@ -8,6 +8,7 @@ const VALID_FILE_EXT = ["mp3","flac","wav"];
 let playlistTimeTimer=null;
 let playlistElapsedSeconds=0;
 let playlistSongLength=-1;
+let currentlyPlaying = false;
 
 const params = new URLSearchParams(location.search);
 
@@ -101,10 +102,12 @@ function getCookie(cname) {
 //someone more organised than me would have set all these html elements to variables so they dont have to get them 50 times
 // also someone who likes things not being dumb more than me would have separated the client and server buttons
 async function controlButton(buttonType) {
-    clearInterval(playlistTimeTimer);
     if (buttonType == "pp") { // Play-Pause button
-        getFromServer({control: "play-pause"}, "controls")
+        let result = await getFromServer({control: "play-pause"}, "controls");
+        console.log(result);
+        currentlyPlaying = result["data"]["playingState"];
     } else if (buttonType == "sk") { // Skip button
+        clearInterval(playlistTimeTimer);
         let returnCode = await getFromServer({control: "skip"}, "controls");
         console.log(returnCode["ok"])
         if(returnCode["ok"]) {
@@ -113,6 +116,7 @@ async function controlButton(buttonType) {
             }
         }
     } else if (buttonType == "pl") { // Playlist button
+        clearInterval(playlistTimeTimer);
         document.getElementById("songlist").innerHTML = "";
         document.getElementById("playlist").innerHTML = "<h1 id=\"playlist-alert\"></h1>";
         document.getElementById("playlist-mode").style.display = "block";
@@ -120,12 +124,14 @@ async function controlButton(buttonType) {
         document.getElementById("settings-mode").style.display = "none";
         generateVisualPlaylist();
     } else if (buttonType == "se") { //SearchMode button
+        clearInterval(playlistTimeTimer);
         document.getElementById("songlist").innerHTML = "<h1>Search to find songs!</h1>";
         document.getElementById("playlist").innerHTML = "";
         document.getElementById("playlist-mode").style.display = "none";
         document.getElementById("songlist-mode").style.display = "block";
         document.getElementById("settings-mode").style.display = "none";
     } else if (buttonType == "st") { //Settings button
+        clearInterval(playlistTimeTimer);
         document.getElementById("songlist").innerHTML = "";
         document.getElementById("playlist").innerHTML = "";
         document.getElementById("playlist-mode").style.display = "none";
@@ -251,19 +257,28 @@ function qrCodeGenerate() {
     });
 }
 
-async function displayElapsedPlaylistTime(elapsed=0,length=0) {
-    if(Math.floor(elapsed) === Math.floor(length)){
-        console.log("somethingShouldBeHappening")
-        playlistElapsedSeconds = 0;
-        generateVisualPlaylist();
+async function displayElapsedPlaylistTime(elapsed=0,length=-1) {
+    if(currentlyPlaying) {
+        if(Math.floor(elapsed) > Math.floor(length) && typeof length === "number" && typeof elapsed === "number"){
+            // console.log("somethingShouldBeHappening")
+            playlistElapsedSeconds = 0;
+            generateVisualPlaylist();
+        }
+        let mins = Math.floor(elapsed/60);
+        let secs = Math.floor(elapsed%60);
+        let durMins = Math.floor(length/60);
+        let durSecs = Math.floor(length%60);
+        let timeLeft = document.getElementById("elapsed-time-display");
+        if(mins > durMins) {
+            mins = durMins;
+            if(secs > durSecs) {
+            secs = durSecs;
+        }
+        }
+        
+        timeLeft.innerHTML = mins.toString() +":"+ secs.toLocaleString('en-US', {minimumIntegerDigits: 2,useGrouping: false}) + "/"+ durMins.toString()+":"+durSecs.toLocaleString('en-US', {minimumIntegerDigits: 2,useGrouping: false});
+        // playlistElapsedSeconds++;
     }
-    let mins = Math.floor(elapsed/60);
-    let secs = Math.floor(elapsed%60);
-    let durMins = Math.floor(length/60);
-    let durSecs = Math.floor(length%60);
-    let timeLeft = document.getElementById("elapsed-time-display");
-    timeLeft.innerHTML = mins.toString() +":"+ secs.toLocaleString('en-US', {minimumIntegerDigits: 2,useGrouping: false}) + "/"+ durMins.toString()+":"+durSecs.toLocaleString('en-US', {minimumIntegerDigits: 2,useGrouping: false});
-    playlistElapsedSeconds++;
 }
 
 async function checkSettings(skipServer=false) {
@@ -313,7 +328,8 @@ async function checkSettings(skipServer=false) {
 async function generateVisualPlaylist(conditions="") {
     document.getElementById("playlist").innerHTML = "<h1 id=\"playlist-alert\"></h1>";
     data = await getFromServer(null, "playlist");
-    playlist = data["data"];
+    playlist = data["data"]["playlist"];
+    currentlyPlaying = data["data"]["playingState"]
     playlist = Object.values(playlist).map(obj => {
         const filename = Object.keys(obj)[0]; // Get the filename
         const songData = obj[filename]; // Get the song metadata
@@ -323,7 +339,7 @@ async function generateVisualPlaylist(conditions="") {
         clearInterval(playlistTimeTimer);
         document.getElementById("playlist-alert").innerHTML = "Nothing's Queued..."
     } else {
-        if (conditions=="skip-button") {
+        if (conditions==="skip-button") {
             playlist.shift()
             if (playlist.length==0){
                 document.getElementById("playlist-alert").innerHTML = "Nothing's Queued..."
@@ -375,9 +391,6 @@ async function generateVisualPlaylist(conditions="") {
                         playlistSongLength = playlist[0]["length"];
                         displayElapsedPlaylistTime(playlistElapsedSeconds,playlistSongLength);
                         clearInterval(playlistTimeTimer);
-                        playlistTimeTimer = setInterval(() => {
-                            displayElapsedPlaylistTime(playlistElapsedSeconds,playlistSongLength);
-                        },1000)
                     }
                 }
             }catch(err){
@@ -386,6 +399,9 @@ async function generateVisualPlaylist(conditions="") {
             }
         }
     }
+    playlistTimeTimer = setInterval(() => {
+        displayElapsedPlaylistTime(playlistElapsedSeconds,playlistSongLength);
+    },1000)
 }
 
 async function submitSong(songid) {
@@ -566,3 +582,25 @@ if (alertTime == "") {
 }
 // this is the code that makes the qr code at the very start
 qrCodeGenerate()
+
+// socket testing stuff
+
+socket = io("http://"+ip,{
+    reconnectionAttemps: 5,
+    timeout: 10000,
+});
+
+socket.on("songAdd", function(data) {
+    console.log("recieved data from songAdd");
+    console.log(data);
+    generateVisualPlaylist();
+})
+
+socket.on("timeUpdate", function(data) {
+    console.log("recieved data from timeUpdate");
+    console.log(data);
+    playlistElapsedSeconds = data["elapsedTime"];
+    playingState = data["playingState"]
+});
+
+socket.on("skipSong",generateVisualPlaylist)
