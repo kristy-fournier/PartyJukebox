@@ -71,7 +71,7 @@ async function getFromServer(bodyInfo, source="",password=adminPass) {
     } catch(e) {
         // console.log("error print here:");
         // console.log(e);
-        if (e.toString().contains("TypeError: Failed to fetch")){
+        if (e.toString().includes("TypeError: Failed to fetch")){
             alertText("Error: Can't Connect to Server (is the ip set?)")
         } else {
             alertText("Error: " + e);
