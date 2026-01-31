@@ -2,6 +2,7 @@
 let ip;
 let alertTime = 2;
 let adminPass = "";
+let justSkipped = false
 const ERR_NO_ADMIN = 401;
 const VALID_FILE_EXT = ["mp3","flac","wav"];
 
@@ -104,15 +105,17 @@ function getCookie(cname) {
 async function controlButton(buttonType) {
     if (buttonType == "pp") { // Play-Pause button
         let result = await getFromServer({control: "play-pause"}, "controls");
-        console.log(result);
+        // console.log(result);
         currentlyPlaying = result["data"]["playingState"];
     } else if (buttonType == "sk") { // Skip button
-        clearInterval(playlistTimeTimer);
+        // clearInterval(playlistTimeTimer);
         let returnCode = await getFromServer({control: "skip"}, "controls");
-        console.log(returnCode["ok"])
+        // console.log(returnCode["ok"])
         if(returnCode["ok"]) {
             if (document.getElementById("playlist-mode").style.display == "block") {
-                generateVisualPlaylist("skip-button");
+                skipInPlaylist();
+                playlistElapsedSeconds = 0;
+                justSkipped = true;
             }
         }
     } else if (buttonType == "pl") { // Playlist button
@@ -277,7 +280,7 @@ async function displayElapsedPlaylistTime(elapsed=0,length=-1) {
         }
         
         timeLeft.innerHTML = mins.toString() +":"+ secs.toLocaleString('en-US', {minimumIntegerDigits: 2,useGrouping: false}) + "/"+ durMins.toString()+":"+durSecs.toLocaleString('en-US', {minimumIntegerDigits: 2,useGrouping: false});
-        // playlistElapsedSeconds++;
+        playlistElapsedSeconds++;
     }
 }
 
@@ -323,6 +326,76 @@ async function checkSettings(skipServer=false) {
     document.getElementById("partymodesettingcheckbox").checked = currentAdminPerms["PM"];
     document.getElementById("volumechangesettingcheckbox").checked = currentAdminPerms["VOL"];
     document.getElementById("duplicateallowesettingcheckbox").checked = currentAdminPerms["DUP"];
+}
+
+async function addToPlaylist(songObject) {
+    i = document.getElementById("playlist").children.length-1
+    let newItem = document.createElement("div");
+    newItem.className = "item";
+    newItem.id = Object.keys(songObject)[0];
+    newItem.tabIndex = 0;
+    let image = document.createElement("img");
+    try {
+        if (songObject[newItem.id]["art"] == null) {
+            throw "no image lolz"
+        }
+        image.src = songObject[newItem.id]["art"];
+    } catch(err){
+        image.src = "./images/placeholder.png";
+    }
+    image.id = String(songObject[newItem.id])+" image";
+    let head3 = document.createElement("h3");
+    head3.innerText = songObject[newItem.id]["title"];
+    let head4 = document.createElement("h4");
+    head4.innerText= songObject[newItem.id]["artist"];
+    let head5 = document.createElement("h5");
+    let timeLeft =document.createElement("h5");
+    timeLeft.style.fontWeight = 100;
+    if(i==0) {
+        // they can all have the text, doesn't really matter, but only the first one 
+        // should get the ids since its the one we want to mess with
+        head5.id = "playing-indicator-text";
+        timeLeft.id = "elapsed-time-display";
+    }
+    let textdiv = document.createElement("div")
+    textdiv.className="text"
+    newItem.appendChild(image);
+    textdiv.appendChild(head3);
+    textdiv.appendChild(head4);
+    textdiv.appendChild(timeLeft);
+    textdiv.appendChild(head5);
+    newItem.appendChild(textdiv);
+    document.getElementById("playlist").appendChild(newItem);
+    try {
+        if (i == 0) { // Only the first song in the loop gets a time
+            head5.innerHTML="Playing";
+            playlistElapsedSeconds = playlist[0]["time"];
+            playlistSongLength = playlist[0]["length"];
+            displayElapsedPlaylistTime(playlistElapsedSeconds,playlistSongLength);
+            clearInterval(playlistTimeTimer);
+        }
+    } catch(e) {
+        console.log("I dunno something bad happened:"+e);
+    }
+}
+
+async function skipInPlaylist()  {
+    playlistElapsedSeconds = 0;
+    let playlistChildren = document.getElementById("playlist").children;
+    if(playlistChildren[1].nodeName === "DIV") {
+        playlistChildren[1].remove();
+    }
+    playlistChildren = document.getElementById("playlist").children;
+    if(playlistChildren.length === 1) {
+        playlistChildren[0].innerText = "Nothing's Queued..."
+    } else {
+        let firstElementTextChildren = playlistChildren[1].children[1].children
+        // console.log(firstElementTextChildren);
+        firstElementTextChildren[2].id = "elapsed-time-display";
+        firstElementTextChildren[3].id = "playing-indicator-text";
+        firstElementTextChildren[3].textContent = "Playing";
+    }
+    displayElapsedPlaylistTime(playlistElapsedSeconds,playlistSongLength);
 }
 
 async function generateVisualPlaylist(conditions="") {
@@ -398,10 +471,10 @@ async function generateVisualPlaylist(conditions="") {
                 console.error(err)
             }
         }
+        playlistTimeTimer = setInterval(() => {
+            displayElapsedPlaylistTime(playlistElapsedSeconds,playlistSongLength);
+        },1000)
     }
-    playlistTimeTimer = setInterval(() => {
-        displayElapsedPlaylistTime(playlistElapsedSeconds,playlistSongLength);
-    },1000)
 }
 
 async function submitSong(songid) {
@@ -591,16 +664,22 @@ socket = io("http://"+ip,{
 });
 
 socket.on("songAdd", function(data) {
-    console.log("recieved data from songAdd");
+    // console.log("recieved data from songAdd");
     console.log(data);
-    generateVisualPlaylist();
+    addToPlaylist(data);
 })
 
 socket.on("timeUpdate", function(data) {
-    console.log("recieved data from timeUpdate");
+    // console.log("recieved data from timeUpdate");
     console.log(data);
     playlistElapsedSeconds = data["elapsedTime"];
-    playingState = data["playingState"]
+    currentlyPlaying = data["playingState"]
 });
 
-socket.on("skipSong",generateVisualPlaylist)
+socket.on("skipSong",() => {
+    if(justSkipped === false) {
+        skipInPlaylist();
+    } else {
+        justSkipped = false;
+    }
+})

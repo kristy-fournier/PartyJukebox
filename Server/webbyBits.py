@@ -90,21 +90,22 @@ def getSongInfo(song):
 
 # this is a loop that plays the songs and checks for playlist changes, skips, ect.
 counter = 0
+isPlaying = False
 def playQueuedSongs():
     global skipNow
     global songNext
     global partyMode
     global counter
+    global isPlaying
     while True:
         with playlistLock:
             counter+=1
-            if(counter > 10):
+            if(counter > 2):
                 playingState = str(player.get_state()) == "State.Playing"
                 socketio.emit('timeUpdate',{"elapsedTime":player.get_time()/1000,"playingState":playingState})
+                counter = 0
             playerState = str(player.get_state())
             endStates = ["State.Ended","State.Stopped","State.NothingSpecial"]
-            if playerState == "State.Ended":
-                socketio.emit("skipSong",None)
             if playlist and (playerState in endStates or skipNow == True):
                 # New song is in the queue and (the previous song is over or skip has been pressed)
                 player.stop()
@@ -113,7 +114,12 @@ def playQueuedSongs():
                 media = vlcInstance.media_new(soundLocation+songNext)
                 player.set_media(media)
                 player.play()
+                isPlaying = True
+                socketio.emit("skipSong",None)
             elif (skipNow==True or (playerState in endStates)):
+                if(isPlaying):
+                    socketio.emit("skipSong",None)
+                    isPlaying = False
                 # print(playerState)
                 # skip was pressed and there are no new songs
                 skipNow=False

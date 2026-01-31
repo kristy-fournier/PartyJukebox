@@ -1,5 +1,6 @@
 ## Wishlist
 *Features I would like to add, will be completed in any order*
+- [ ] Loading indicator while awaiting server stuff
 - [ ] Refactoring existing code
     - [x] Remove old comments
     - [ ] Update the SQL -> Server -> Client pipeline when searching and building playlist
