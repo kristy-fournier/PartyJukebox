@@ -27,7 +27,5 @@
     - [x] Set a timeout to change the time (to start)
     - [x] Send updates to the playlist in real time when songs are added
         * This is only kind of done, still needs work
-        - [ ] Update the playlist's html without destroying it (create 1 new element)
+        - [x] Update the playlist's html without destroying it (create 1 new element)
     - [x] Tell clients looking at the playlist when the song has been paused (so they can pause the local timers)
-        * Again, still needs work
-        * This is currently solved by just sending the time and "playing status" once a second-ish
