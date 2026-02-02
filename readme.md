@@ -14,7 +14,7 @@ The client is a web application that can be hosted on any server, it need not be
 ### Server Setup:
 **Pre-setup:** If you want the songs to have art associated with them, it is all hosted on and retrieved from LastFM, and you will need to sign up for a developer app, and put your key in the database generator \
 \
-The server side consists of 3 files:
+The server side consists of 3 files and a directory:
 
 ```
 sound/
