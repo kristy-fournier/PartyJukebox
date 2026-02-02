@@ -23,9 +23,9 @@
         - Potentially a "redemption code" system, which can be tracked client side
     - All of this is very hackable without a server-side login.
 - [ ] Websockets / some method of updating the time remaining to any client on the playlist screen
-    * This is implemented in a very broken way right now
     - [x] Set a timeout to change the time (to start)
     - [x] Send updates to the playlist in real time when songs are added
-        * This is only kind of done, still needs work
         - [x] Update the playlist's html without destroying it (create 1 new element)
     - [x] Tell clients looking at the playlist when the song has been paused (so they can pause the local timers)
+    - [x] Settings updates
+        - [ ] Without re-posting the server (contain update data in websocket ping)
