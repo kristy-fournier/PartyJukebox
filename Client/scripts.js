@@ -296,6 +296,17 @@ async function displayElapsedPlaylistTime(elapsed=0,length=-1) {
     }
 }
 
+async function updateSingleSetting(data) {
+    let toBeChanged = data["settingToChange"];
+    if (toBeChanged === "partymode") {
+
+    } else if (toBeChanged === "perms") {
+
+    } else if (toBeChanged === "volume") {
+
+    }
+}
+
 async function checkSettings(skipServer=false) {
     //check client stuff first so if the server doesn't exist it can still be changed and seen
     if (ip.slice(-5)=="19054") {
