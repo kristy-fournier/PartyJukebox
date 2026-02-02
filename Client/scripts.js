@@ -2,7 +2,8 @@
 let ip;
 let alertTime = 2;
 let adminPass = "";
-let justSkipped = false
+let justSkipped = false;
+let justChangedSetting = false;
 const ERR_NO_ADMIN = 401;
 const VALID_FILE_EXT = ["mp3","flac","wav"];
 
@@ -41,11 +42,15 @@ async function alertText(text="Song Added!") {
 }
 // a lot of this is kinda waffly because i was trying to get 
 // it to return the right stuff and javascript is asyrcronouse (boo)
-async function getFromServer(bodyInfo, source="",password=adminPass) {
+async function getFromServer(bodyInfo, source="", secure=false, password=adminPass) {
     try{
         if (bodyInfo != null) {
             // the currently set password is always included in every request
             bodyInfo["password"] = password;
+        }
+        let href = "";
+        if(secure) {
+            href = "https://"+ip+"/"
         }
         const response = await fetch("http://"+ip+"/"+source, {
             method: "POST",
@@ -142,8 +147,13 @@ async function controlButton(buttonType) {
         document.getElementById("settings-mode").style.display = "block";
         checkSettings()
     } else if (buttonType = "pm") { //Partymode toggle (in settings)
-        await getFromServer({setting: "partymode-toggle"}, "settings")
-        checkSettings(true)
+        let response = await getFromServer({setting: "partymode-toggle"}, "settings")
+        if(response.ok) {
+            justChangedSetting = true;
+            checkSettings();
+        } else {
+            // dont think anything is needed here
+        }
     }
     
 
@@ -517,19 +527,19 @@ function toggleDark(e) {
     qrCodeGenerate();
 }
 
-async function sha256(message) {
-    // Encode the message as UTF-8
-    const msgBuffer = new TextEncoder().encode(message);
+// async function sha256(message) {
+//     // Encode the message as UTF-8
+//     const msgBuffer = new TextEncoder().encode(message);
 
-    // Hash the message
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+//     // Hash the message
+//     const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
 
-    // Convert ArrayBuffer to hex string
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+//     // Convert ArrayBuffer to hex string
+//     const hashArray = Array.from(new Uint8Array(hashBuffer));
+//     const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-    return hashHex;
-}
+//     return hashHex;
+// }
 
 async function adminPassEnter(e) {
     if (e.key == "Enter") {
@@ -559,6 +569,8 @@ async function submitPerms(e) {
         // its not perfect if you spam click, but it gets the point across to the user
         let clickedBox = e.srcElement;
         clickedBox.checked = !clickedBox.checked;
+    } else {
+        justChangedSetting = true;
     }
 }
 
@@ -627,8 +639,9 @@ document.getElementById("songlist").addEventListener('keydown', function(e){chec
 document.getElementById("songlist").addEventListener('click', function(e){checkWhatSongWasClicked(e)});
 
 //makes the controls look mostly normal on all screens, best solution i could find, idk man
-let tempWidth = document.getElementById('controls').clientWidth;
-document.getElementById("controls").style.marginLeft = "-"+String(parseInt(tempWidth/2))+"px";
+// replaced this with "transform" css stuff
+// let tempWidth = document.getElementById('controls').clientWidth;
+// document.getElementById("controls").style.marginLeft = "-"+String(parseInt(tempWidth/2))+"px";
 
 //for my use case (my immediate family), they dont know how to set an ip
 //using this allows the creator of the link for, a qr code for example, to set the ip before distributing the code, and it would all work smoothly
@@ -665,13 +678,13 @@ socket = io("http://"+ip,{
 
 socket.on("songAdd", function(data) {
     // console.log("recieved data from songAdd");
-    console.log(data);
+    // console.log(data);
     addToPlaylist(data);
 })
 
 socket.on("timeUpdate", function(data) {
     // console.log("recieved data from timeUpdate");
-    console.log(data);
+    // console.log(data);
     playlistElapsedSeconds = data["elapsedTime"];
     currentlyPlaying = data["playingState"]
 });
@@ -683,3 +696,13 @@ socket.on("skipSong",() => {
         justSkipped = false;
     }
 })
+
+socket.on("settingsChange",(data) => {
+    console.log(data);
+    if(justChangedSetting) {
+        console.log("working");
+        justChangedSetting = false;
+    } else {
+        checkSettings();
+    }
+});

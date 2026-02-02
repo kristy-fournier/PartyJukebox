@@ -190,6 +190,7 @@ def settingsControl():
                 volumeLevel = int(recieveData["level"])
                 if(volumeLevel <= 100 and volumeLevel >= 0):
                     volumePassed = player.audio_set_volume(volumeLevel)
+                    socketio.emit("settingsChange")
                     return {"error":"ok","data":{"volumePassed":volumePassed}},200
                 else:
                     return {"error":"Invalid volume level","data":None},422
@@ -198,11 +199,13 @@ def settingsControl():
         elif recieveData["setting"] == "partymode-toggle":
             if ADMIN_PASS == recieveData['password'] or controlPerms["PM"]:
                 partyMode = not(partyMode)
+                socketio.emit("settingsChange")
                 return ERR_200
             else:
                 return ERR_NO_ADMIN
         elif recieveData["setting"] == "perms":
             if ADMIN_PASS == recieveData["password"]:
+                socketio.emit("settingsChange")
                 controlPerms = recieveData["admin"]
                 # print(recieveData["admin"])
                 return ERR_200
