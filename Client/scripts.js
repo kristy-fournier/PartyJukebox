@@ -50,9 +50,11 @@ async function getFromServer(bodyInfo, source="", secure=false, password=adminPa
         }
         let href = "";
         if(secure) {
-            href = "https://"+ip+"/"
+            href = "https://"+ip+"/" + source;
+        } else {
+            href = "http://"+ip+"/" + source;
         }
-        const response = await fetch("http://"+ip+"/"+source, {
+        const response = await fetch(href, {
             method: "POST",
             body: JSON.stringify(bodyInfo),
             headers: {
