@@ -70,7 +70,7 @@ These are specific details on each section of the app, and how to use them
                 - Add track to queue
                 - Partymode toggle
                 - Change volume
-        - When this argument is left out (or empty string) the admin features aren't used, and everyone can do everything
+        - When this argument is left out a random string is generated and printed in console to be the admin password (so keep the console window hidden if you don't want to use it)
 
 ### Client:
 ![image](./Screenshot_MAIN.png) \
