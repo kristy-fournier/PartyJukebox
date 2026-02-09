@@ -60,7 +60,6 @@ These are specific details on each section of the app, and how to use them
     - Accepts Play-Pause and Skip commands
     - Uses port 19054 by default
         - Can be changed in the `.env` file
-        - The default port can be changed in the file
     - Running with `--admin (admin password)` sets an admin password for moderation on the client
         - ***Note: Do not reuse a password, the password is hashed before being sent over the network, but I still wouldn't bet my house on it, no security is guaranteed***
         - Anyone who knows the admin password can enter it on the client and change the abilities of any non-admin users (for example to limit skipping)
@@ -70,6 +69,9 @@ These are specific details on each section of the app, and how to use them
                 - Add track to queue
                 - Partymode toggle
                 - Change volume
+                - Add duplicate track to queue
+                    - This is a seperate toggle, but is based on the setting "Add track to queue"
+                    - Basically if you can't add at all, you can't add a duplicate either (obviously)
         - When this argument is left out (or empty string) the admin features aren't used, and everyone can do everything
 
 ### Client:
@@ -89,6 +91,7 @@ From left to right:
     - Volume controls the VLC volume of the connected server
         - *Because the volume can be controlled in the client, for best usage set your device volume as high as possible and turn it down using this slider*
     - QR code to allow others to connect to and use the Remote
+    - Admin password can be set to restrict actions for general users, or avoid the set restrictions
 
 ### A quick note on the password feature
 
