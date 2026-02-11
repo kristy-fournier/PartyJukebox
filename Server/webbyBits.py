@@ -193,9 +193,7 @@ def settingsControl():
                     if(volumePassed == 0):
                         # only emit a signal i the volume really changed
                         socketio.emit("settingsChange",{"settingToChange":"volume","newData":volumeLevel})
-                        return {"error":"ok","data":{"volumePassed":volumePassed}},200
-                    else:
-                        return {"error":"VLC cannot take volume change requests at this time","data":None},500
+                    return {"error":"ok","data":{"volumePassed":volumePassed}},200
                 else:
                     return {"error":"Invalid volume level","data":None},422
             else:

@@ -148,7 +148,7 @@ async function controlButton(buttonType) {
         document.getElementById("songlist-mode").style.display = "none";
         document.getElementById("settings-mode").style.display = "block";
         checkSettings()
-    } else if (buttonType = "pm") { //Partymode toggle (in settings)
+    } else if (buttonType == "pm") { //Partymode toggle (in settings)
         let response = await getFromServer({setting: "partymode-toggle"}, "settings")
         if(response.ok) {
             justChangedSetting = true;
@@ -156,6 +156,8 @@ async function controlButton(buttonType) {
         } else {
             // dont think anything is needed here
         }
+    } else {
+        alertText("Error: You pushed a button that does not exist");
     }
     
 
@@ -617,8 +619,7 @@ document.getElementById("settings-mode").style.display = "none";
 document.getElementById("volumerange").onchange = async function(e) {
     // there is no reason for this not to be a defined function
     // FIX THIS
-    console.log(e);
-    let returnValue = await getFromServer({setting:"volume",level:this.value}, "settings")
+    let returnValue = await getFromServer({setting:"volume",level:e.target.value}, "settings")
     if (returnValue["status"] == ERR_NO_ADMIN) {
         // alertText("Error: Admin restricted action");
         // there's an admin restrict alert built into getFromServer
@@ -718,9 +719,9 @@ socket.on("skipSong",() => {
 })
 
 socket.on("settingsChange",(data) => {
-    console.log(data);
+    // console.log(data);
     if(justChangedSetting) {
-        console.log("working");
+        // console.log("working");
         justChangedSetting = false;
     } else {
         // checkSettings();
