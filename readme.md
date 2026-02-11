@@ -14,7 +14,7 @@ The client is a web application that can be hosted on any server, it need not be
 ### Server Setup:
 **Pre-setup:** If you want the songs to have art associated with them, it is all hosted on and retrieved from LastFM, and you will need to sign up for a developer app, and put your key in the database generator \
 \
-The server side consists of 3 files:
+The server side consists of 3 files and a directory:
 
 ```
 sound/
@@ -60,7 +60,6 @@ These are specific details on each section of the app, and how to use them
     - Accepts Play-Pause and Skip commands
     - Uses port 19054 by default
         - Can be changed in the `.env` file
-        - The default port can be changed in the file
     - Running with `--admin (admin password)` sets an admin password for moderation on the client
         - ***Note: Do not reuse a password, the password is hashed before being sent over the network, but I still wouldn't bet my house on it, no security is guaranteed***
         - Anyone who knows the admin password can enter it on the client and change the abilities of any non-admin users (for example to limit skipping)
@@ -70,6 +69,9 @@ These are specific details on each section of the app, and how to use them
                 - Add track to queue
                 - Partymode toggle
                 - Change volume
+                - Add duplicate track to queue
+                    - This is a seperate toggle, but is based on the setting "Add track to queue"
+                    - Basically if you can't add at all, you can't add a duplicate either (obviously)
         - When this argument is left out a random string is generated and printed in console to be the admin password (so keep the console window hidden if you don't want to use it)
 
 ### Client:
@@ -89,6 +91,7 @@ From left to right:
     - Volume controls the VLC volume of the connected server
         - *Because the volume can be controlled in the client, for best usage set your device volume as high as possible and turn it down using this slider*
     - QR code to allow others to connect to and use the Remote
+    - Admin password can be set to restrict actions for general users, or avoid the set restrictions
 
 ### A quick note on the password feature
 

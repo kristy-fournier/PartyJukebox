@@ -6,6 +6,9 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="manifest" href="manifest.json" />
     <meta charset="utf-8">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.11.0/sha256.min.js"></script> 
+    <!-- above allows use of sha256() on http -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 </head>
 <body id="test-body">
     <!--Cookie Popup(does it matter if im not tracking them? i have no idea)-->
@@ -101,7 +104,7 @@ changes visibility with JS-->
                     <input type="checkbox" title="playpausecheck" id="playpausesettingcheckbox"><label for="playpausesettingcheckbox">Play/pause</label><br>
                     <input type="checkbox" title="partymodecheck" id="partymodesettingcheckbox"><label for="partymodesettingcheckbox">Toggle Party Mode</label><br>
                     <input type="checkbox" title="volumechangecheck" id="volumechangesettingcheckbox"><label for="volumechangesettingcheckbox">Change volume</label><br>
-                    <input type="checkbox" title="duplicateallowcheck" id="duplicateallowesettingcheckbox"><label for="duplicateallowsettingcheck">Allow Duplicates</label><br>
+                    <input type="checkbox" title="duplicateallowcheck" id="duplicateallowesettingcheckbox"><label for="duplicateallowsettingcheck">Add duplicate songs</label><br>
 
                 </div>
             </div>

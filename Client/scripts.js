@@ -2,8 +2,15 @@
 let ip;
 let alertTime = 2;
 let adminPass = "";
+let justSkipped = false;
+let justChangedSetting = false;
 const ERR_NO_ADMIN = 401;
 const VALID_FILE_EXT = ["mp3","flac","wav"];
+
+let playlistTimeTimer=null;
+let playlistElapsedSeconds=0;
+let playlistSongLength=-1;
+let currentlyPlaying = false;
 
 const params = new URLSearchParams(location.search);
 
@@ -35,13 +42,19 @@ async function alertText(text="Song Added!") {
 }
 // a lot of this is kinda waffly because i was trying to get 
 // it to return the right stuff and javascript is asyrcronouse (boo)
-async function getFromServer(bodyInfo, source="",password=adminPass) {
+async function getFromServer(bodyInfo, source="", secure=false, password=adminPass) {
     try{
         if (bodyInfo != null) {
             // the currently set password is always included in every request
             bodyInfo["password"] = password;
         }
-        const response = await fetch("http://"+ip+"/"+source, {
+        let href = "";
+        if(secure) {
+            href = "https://"+ip+"/" + source;
+        } else {
+            href = "http://"+ip+"/" + source;
+        }
+        const response = await fetch(href, {
             method: "POST",
             body: JSON.stringify(bodyInfo),
             headers: {
@@ -54,9 +67,9 @@ async function getFromServer(bodyInfo, source="",password=adminPass) {
             // im suprised i didn't comment on this already but this is kinda lame desing
             // its not wrong but you know
             // it is easy which i like
-            // and it overrides any other non-async alerts which is nice
             alertText("Error: Admin restricted action")
         } else if(!response.ok){
+            throw new Error(data.error);
             alertText("Error: "+data.error);
         }
         // we add some information from the response just in case it is needed
@@ -67,7 +80,7 @@ async function getFromServer(bodyInfo, source="",password=adminPass) {
     } catch(e) {
         // console.log("error print here:");
         // console.log(e);
-        if (e.toString().contains("TypeError: Failed to fetch")){
+        if (e.toString().includes("TypeError: Failed to fetch")){
             alertText("Error: Can't Connect to Server (is the ip set?)")
         } else {
             alertText("Error: " + e);
@@ -98,15 +111,22 @@ function getCookie(cname) {
 // also someone who likes things not being dumb more than me would have separated the client and server buttons
 async function controlButton(buttonType) {
     if (buttonType == "pp") { // Play-Pause button
-        getFromServer({control: "play-pause"}, "controls")
+        let result = await getFromServer({control: "play-pause"}, "controls");
+        // console.log(result);
+        currentlyPlaying = result["data"]["playingState"];
     } else if (buttonType == "sk") { // Skip button
-        let returnCode = getFromServer({control: "skip"}, "controls");
+        // clearInterval(playlistTimeTimer);
+        let returnCode = await getFromServer({control: "skip"}, "controls");
+        // console.log(returnCode["ok"])
         if(returnCode["ok"]) {
             if (document.getElementById("playlist-mode").style.display == "block") {
-                generateVisualPlaylist("skip-button");
+                skipInPlaylist();
+                playlistElapsedSeconds = 0;
+                justSkipped = true;
             }
         }
     } else if (buttonType == "pl") { // Playlist button
+        clearInterval(playlistTimeTimer);
         document.getElementById("songlist").innerHTML = "";
         document.getElementById("playlist").innerHTML = "<h1 id=\"playlist-alert\"></h1>";
         document.getElementById("playlist-mode").style.display = "block";
@@ -114,21 +134,30 @@ async function controlButton(buttonType) {
         document.getElementById("settings-mode").style.display = "none";
         generateVisualPlaylist();
     } else if (buttonType == "se") { //SearchMode button
+        clearInterval(playlistTimeTimer);
         document.getElementById("songlist").innerHTML = "<h1>Search to find songs!</h1>";
         document.getElementById("playlist").innerHTML = "";
         document.getElementById("playlist-mode").style.display = "none";
         document.getElementById("songlist-mode").style.display = "block";
         document.getElementById("settings-mode").style.display = "none";
     } else if (buttonType == "st") { //Settings button
+        clearInterval(playlistTimeTimer);
         document.getElementById("songlist").innerHTML = "";
         document.getElementById("playlist").innerHTML = "";
         document.getElementById("playlist-mode").style.display = "none";
         document.getElementById("songlist-mode").style.display = "none";
         document.getElementById("settings-mode").style.display = "block";
         checkSettings()
-    } else if (buttonType = "pm") { //Partymode toggle (in settings)
-        await getFromServer({setting: "partymode-toggle"}, "settings")
-        checkSettings(true)
+    } else if (buttonType == "pm") { //Partymode toggle (in settings)
+        let response = await getFromServer({setting: "partymode-toggle"}, "settings")
+        if(response.ok) {
+            justChangedSetting = true;
+            checkSettings();
+        } else {
+            // dont think anything is needed here
+        }
+    } else {
+        alertText("Error: You pushed a button that does not exist");
     }
     
 
@@ -245,6 +274,47 @@ function qrCodeGenerate() {
     });
 }
 
+async function displayElapsedPlaylistTime(elapsed=0,length=-1) {
+    if(currentlyPlaying) {
+        if(Math.floor(elapsed) > Math.floor(length) && typeof length === "number" && typeof elapsed === "number"){
+            // console.log("somethingShouldBeHappening")
+            playlistElapsedSeconds = 0;
+            generateVisualPlaylist();
+        }
+        let mins = Math.floor(elapsed/60);
+        let secs = Math.floor(elapsed%60);
+        let durMins = Math.floor(length/60);
+        let durSecs = Math.floor(length%60);
+        let timeLeft = document.getElementById("elapsed-time-display");
+        if(mins > durMins) {
+            mins = durMins;
+            if(secs > durSecs) {
+            secs = durSecs;
+        }
+        }
+        
+        timeLeft.innerHTML = mins.toString() +":"+ secs.toLocaleString('en-US', {minimumIntegerDigits: 2,useGrouping: false}) + "/"+ durMins.toString()+":"+durSecs.toLocaleString('en-US', {minimumIntegerDigits: 2,useGrouping: false});
+        playlistElapsedSeconds++;
+    }
+}
+
+async function updateSingleSetting(data) {
+    let toBeChanged = data["settingToChange"];
+    if (toBeChanged === "partymode") {
+        document.getElementById("partymode-button").textContent = data["newData"];
+    } else if (toBeChanged === "perms") {
+        let currentAdminPerms = data["newData"];
+        document.getElementById("addsongsettingcheckbox").checked = currentAdminPerms["AS"];
+        document.getElementById("skipsongsettingcheckbox").checked = currentAdminPerms["SK"];
+        document.getElementById("playpausesettingcheckbox").checked = currentAdminPerms["PP"];
+        document.getElementById("partymodesettingcheckbox").checked = currentAdminPerms["PM"];
+        document.getElementById("volumechangesettingcheckbox").checked = currentAdminPerms["VOL"];
+        document.getElementById("duplicateallowesettingcheckbox").checked = currentAdminPerms["DUP"];
+    } else if (toBeChanged === "volume") {
+        document.getElementById("volumerange").value = data["newData"];
+    }
+}
+
 async function checkSettings(skipServer=false) {
     //check client stuff first so if the server doesn't exist it can still be changed and seen
     if (ip.slice(-5)=="19054") {
@@ -289,19 +359,91 @@ async function checkSettings(skipServer=false) {
     document.getElementById("duplicateallowesettingcheckbox").checked = currentAdminPerms["DUP"];
 }
 
+async function addToPlaylist(songObject) {
+    i = document.getElementById("playlist").children.length-1
+    let newItem = document.createElement("div");
+    newItem.className = "item";
+    newItem.id = Object.keys(songObject)[0];
+    newItem.tabIndex = 0;
+    let image = document.createElement("img");
+    try {
+        if (songObject[newItem.id]["art"] == null) {
+            throw "no image lolz"
+        }
+        image.src = songObject[newItem.id]["art"];
+    } catch(err){
+        image.src = "./images/placeholder.png";
+    }
+    image.id = String(songObject[newItem.id])+" image";
+    let head3 = document.createElement("h3");
+    head3.innerText = songObject[newItem.id]["title"];
+    let head4 = document.createElement("h4");
+    head4.innerText= songObject[newItem.id]["artist"];
+    let head5 = document.createElement("h5");
+    let timeLeft =document.createElement("h5");
+    timeLeft.style.fontWeight = 100;
+    if(i==0) {
+        // they can all have the text, doesn't really matter, but only the first one 
+        // should get the ids since its the one we want to mess with
+        head5.id = "playing-indicator-text";
+        timeLeft.id = "elapsed-time-display";
+    }
+    let textdiv = document.createElement("div")
+    textdiv.className="text"
+    newItem.appendChild(image);
+    textdiv.appendChild(head3);
+    textdiv.appendChild(head4);
+    textdiv.appendChild(timeLeft);
+    textdiv.appendChild(head5);
+    newItem.appendChild(textdiv);
+    document.getElementById("playlist").appendChild(newItem);
+    try {
+        if (i == 0) { // Only the first song in the loop gets a time
+            head5.innerHTML="Playing";
+            playlistElapsedSeconds = playlist[0]["time"];
+            playlistSongLength = playlist[0]["length"];
+            displayElapsedPlaylistTime(playlistElapsedSeconds,playlistSongLength);
+            clearInterval(playlistTimeTimer);
+        }
+    } catch(e) {
+        console.log("I dunno something bad happened:"+e);
+    }
+}
+
+async function skipInPlaylist()  {
+    playlistElapsedSeconds = 0;
+    let playlistChildren = document.getElementById("playlist").children;
+    if(playlistChildren[1].nodeName === "DIV") {
+        playlistChildren[1].remove();
+    }
+    playlistChildren = document.getElementById("playlist").children;
+    if(playlistChildren.length === 1) {
+        playlistChildren[0].innerText = "Nothing's Queued..."
+    } else {
+        let firstElementTextChildren = playlistChildren[1].children[1].children
+        // console.log(firstElementTextChildren);
+        firstElementTextChildren[2].id = "elapsed-time-display";
+        firstElementTextChildren[3].id = "playing-indicator-text";
+        firstElementTextChildren[3].textContent = "Playing";
+    }
+    displayElapsedPlaylistTime(playlistElapsedSeconds,playlistSongLength);
+}
+
 async function generateVisualPlaylist(conditions="") {
     document.getElementById("playlist").innerHTML = "<h1 id=\"playlist-alert\"></h1>";
     data = await getFromServer(null, "playlist");
-    playlist = data["data"];
+    playlist = data["data"]["playlist"];
+    currentlyPlaying = data["data"]["playingState"]
     playlist = Object.values(playlist).map(obj => {
         const filename = Object.keys(obj)[0]; // Get the filename
         const songData = obj[filename]; // Get the song metadata
         return { filename, ...songData }; // Merge filename with song data
       });
     if (playlist.length==0){
+        clearInterval(playlistTimeTimer);
         document.getElementById("playlist-alert").innerHTML = "Nothing's Queued..."
     } else {
-        if (conditions=="skip-button") {
+        if (conditions==="skip-button") {
             playlist.shift()
             if (playlist.length==0){
                 document.getElementById("playlist-alert").innerHTML = "Nothing's Queued..."
@@ -330,20 +472,11 @@ async function generateVisualPlaylist(conditions="") {
             let head5 = document.createElement("h5");
             let timeLeft =document.createElement("h5");
             timeLeft.style.fontWeight = 100;
-            try {
-                if (i == 0) { // Only the first song in the loop gets a time
-                    head5.innerHTML="Playing";
-                    if ((conditions != "skip-button")) {
-                        let mins = Math.floor(playlist[i]["time"]/60);
-                        let secs = Math.floor(playlist[i]["time"]%60);
-                        let durMins = Math.floor(playlist[i]["length"]/60);
-                        let durSecs = Math.floor(playlist[i]["length"]%60);
-                        timeLeft.innerHTML = mins.toString() +":"+ secs.toLocaleString('en-US', {minimumIntegerDigits: 2,useGrouping: false}) + "/"+ durMins.toString()+":"+durSecs.toLocaleString('en-US', {minimumIntegerDigits: 2,useGrouping: false});
-                    }
-                }
-            }catch(err){
-                // i dont know why there's a try catch here but i'm leaving it i dont want to break something
-                console.error(err)
+            if(i== 0) {
+                // they can all have the text, doesn't really matter, but only the first one 
+                // should get the ids since its the one we want to mess with
+                head5.id = "playing-indicator-text";
+                timeLeft.id = "elapsed-time-display";
             }
             let textdiv = document.createElement("div")
             textdiv.className="text"
@@ -354,13 +487,30 @@ async function generateVisualPlaylist(conditions="") {
             textdiv.appendChild(head5);
             newItem.appendChild(textdiv);
             document.getElementById("playlist").appendChild(newItem);
+            try {
+                if (i == 0) { // Only the first song in the loop gets a time
+                    head5.innerHTML="Playing";
+                    if ((conditions != "skip-button")) {
+                        playlistElapsedSeconds = playlist[0]["time"];
+                        playlistSongLength = playlist[0]["length"];
+                        displayElapsedPlaylistTime(playlistElapsedSeconds,playlistSongLength);
+                        clearInterval(playlistTimeTimer);
+                    }
+                }
+            }catch(err){
+                // i dont know why there's a try catch here but i'm leaving it i dont want to break something
+                console.error(err)
+            }
         }
-    }  
+        playlistTimeTimer = setInterval(() => {
+            displayElapsedPlaylistTime(playlistElapsedSeconds,playlistSongLength);
+        },1000)
+    }
 }
 
 async function submitSong(songid) {
     let returncode = await getFromServer({song: songid}, "songadd");
-    if(returncode == ERR_NO_ADMIN) {
+    if(returncode["status"] === ERR_NO_ADMIN) {
         // right now the error is alerted in getFromServer, maybe will change that
     } else if(returncode["status"]!==200) {
         alertText("That song's already in the queue! Hang on!")
@@ -398,19 +548,19 @@ function toggleDark(e) {
     qrCodeGenerate();
 }
 
-async function sha256(message) {
-    // Encode the message as UTF-8
-    const msgBuffer = new TextEncoder().encode(message);
+// async function sha256(message) {
+//     // Encode the message as UTF-8
+//     const msgBuffer = new TextEncoder().encode(message);
 
-    // Hash the message
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+//     // Hash the message
+//     const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
 
-    // Convert ArrayBuffer to hex string
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+//     // Convert ArrayBuffer to hex string
+//     const hashArray = Array.from(new Uint8Array(hashBuffer));
+//     const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-    return hashHex;
-}
+//     return hashHex;
+// }
 
 async function adminPassEnter(e) {
     if (e.key == "Enter") {
@@ -440,6 +590,8 @@ async function submitPerms(e) {
         // its not perfect if you spam click, but it gets the point across to the user
         let clickedBox = e.srcElement;
         clickedBox.checked = !clickedBox.checked;
+    } else {
+        justChangedSetting = true;
     }
 }
 
@@ -464,10 +616,10 @@ document.addEventListener('keydown', function(e){
 }})
 document.getElementById("playlist-mode").style.display = "none";
 document.getElementById("settings-mode").style.display = "none";
-document.getElementById("volumerange").onchange = async function() {
+document.getElementById("volumerange").onchange = async function(e) {
     // there is no reason for this not to be a defined function
     // FIX THIS
-    let returnValue = await getFromServer({setting:"volume",level:this.value}, "settings")
+    let returnValue = await getFromServer({setting:"volume",level:e.target.value}, "settings")
     if (returnValue["status"] == ERR_NO_ADMIN) {
         // alertText("Error: Admin restricted action");
         // there's an admin restrict alert built into getFromServer
@@ -508,8 +660,9 @@ document.getElementById("songlist").addEventListener('keydown', function(e){chec
 document.getElementById("songlist").addEventListener('click', function(e){checkWhatSongWasClicked(e)});
 
 //makes the controls look mostly normal on all screens, best solution i could find, idk man
-let tempWidth = document.getElementById('controls').clientWidth;
-document.getElementById("controls").style.marginLeft = "-"+String(parseInt(tempWidth/2))+"px";
+// replaced this with "transform" css stuff
+// let tempWidth = document.getElementById('controls').clientWidth;
+// document.getElementById("controls").style.marginLeft = "-"+String(parseInt(tempWidth/2))+"px";
 
 //for my use case (my immediate family), they dont know how to set an ip
 //using this allows the creator of the link for, a qr code for example, to set the ip before distributing the code, and it would all work smoothly
@@ -536,3 +689,42 @@ if (alertTime == "") {
 }
 // this is the code that makes the qr code at the very start
 qrCodeGenerate()
+
+// socket testing stuff
+
+socket = io("http://"+ip,{
+    reconnectionAttemps: 5,
+    timeout: 10000,
+});
+
+socket.on("songAdd", function(data) {
+    // console.log("recieved data from songAdd");
+    // console.log(data);
+    addToPlaylist(data);
+})
+
+socket.on("timeUpdate", function(data) {
+    // console.log("recieved data from timeUpdate");
+    // console.log(data);
+    playlistElapsedSeconds = data["elapsedTime"];
+    currentlyPlaying = data["playingState"]
+});
+
+socket.on("skipSong",() => {
+    if(justSkipped === false) {
+        skipInPlaylist();
+    } else {
+        justSkipped = false;
+    }
+})
+
+socket.on("settingsChange",(data) => {
+    // console.log(data);
+    if(justChangedSetting) {
+        // console.log("working");
+        justChangedSetting = false;
+    } else {
+        // checkSettings();
+        updateSingleSetting(data);
+    }
+});

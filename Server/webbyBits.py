@@ -1,6 +1,7 @@
 from flask import Flask
 from flask import request
 from flask_cors import CORS
+from flask_socketio import SocketIO
 import sqlite3 as sql
 import vlc,threading,time,random,argparse,dotenv,os,hashlib,string
 # Argparse Stuff
@@ -64,18 +65,45 @@ player.audio_set_volume(100)
 app = Flask(__name__)
 # because you are POSTing from another domain to this one, you need CORS
 CORS(app)
+# Replace the star with the frontend domain if you dislike being hacked
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 def queueSong(song):
     with playlistLock:
         playlist.append(song)
+    socketio.emit("songAdd",getSongInfo(song))
+
+def getSongInfo(song):
+    fileofDB = sql.connect("songDatabase.db")
+    songDatabase = fileofDB.cursor()
+    songDatabase.execute("SELECT * FROM songs WHERE filename = ?",[song])
+    result = songDatabase.fetchall()[0]
+    # again, this is still using the old JSON format to avoid client changes
+    k = {
+        "title": result[1],
+        "artist": result[2],
+        "art": result[3],
+        "length": result[4]
+    }
+    fileofDB.close()
+    return {song:k}
 
 # this is a loop that plays the songs and checks for playlist changes, skips, ect.
+counter = 0
+isPlaying = False
 def playQueuedSongs():
     global skipNow
     global songNext
     global partyMode
+    global counter
+    global isPlaying
     while True:
         with playlistLock:
+            counter+=1
+            if(counter > 2):
+                playingState = str(player.get_state()) == "State.Playing"
+                socketio.emit('timeUpdate',{"elapsedTime":player.get_time()/1000,"playingState":playingState})
+                counter = 0
             playerState = str(player.get_state())
             endStates = ["State.Ended","State.Stopped","State.NothingSpecial"]
             if playlist and (playerState in endStates or skipNow == True):
@@ -86,7 +114,13 @@ def playQueuedSongs():
                 media = vlcInstance.media_new(soundLocation+songNext)
                 player.set_media(media)
                 player.play()
+                isPlaying = True
+                socketio.emit("skipSong",None)
             elif (skipNow==True or (playerState in endStates)):
+                if(isPlaying):
+                    socketio.emit("skipSong",None)
+                    isPlaying = False
+                # print(playerState)
                 # skip was pressed and there are no new songs
                 skipNow=False
                 songNext = None
@@ -99,10 +133,15 @@ def playQueuedSongs():
                 # adds the random songs for party mode
                 # the above 2 means this only applies if (a song is playing or paused) and (the queue is empty)
                 playlist.append(result[0][0])
+                socketio.emit('songAdd',getSongInfo(result[0][0]))
         # check for new songs every second
         # I just didn't want to eat too much processing looping 
         # this also has another useful affect that skips get "queued" to only 1 per second, that way somebody usually can't skip twice accidentally
         time.sleep(1)
+
+@socketio.on("connect")
+def handleConnect():
+    pass
 
 @app.route("/controls", methods=['POST'])
 def playerControls():
@@ -113,10 +152,12 @@ def playerControls():
     try:
         if recieveData["control"] == "play-pause":
             if ADMIN_PASS == recieveData['password'] or controlPerms["PP"]:
+                playingState = str(player.get_state())=="State.Playing"
                 player.pause()
-                return ERR_200
+                return {"error":"ok","data":{"playingState":not(playingState)}},200
             else:
-                return ERR_NO_ADMIN
+                playingState = str(player.get_state())=="State.Playing"
+                return {"error":"Admin Restricted Action","data":{"playingState":playingState}},401
         elif recieveData["control"] == "skip":
             if ADMIN_PASS == recieveData['password'] or controlPerms["SK"]:
                 skipNow = True
@@ -149,6 +190,9 @@ def settingsControl():
                 volumeLevel = int(recieveData["level"])
                 if(volumeLevel <= 100 and volumeLevel >= 0):
                     volumePassed = player.audio_set_volume(volumeLevel)
+                    if(volumePassed == 0):
+                        # only emit a signal i the volume really changed
+                        socketio.emit("settingsChange",{"settingToChange":"volume","newData":volumeLevel})
                     return {"error":"ok","data":{"volumePassed":volumePassed}},200
                 else:
                     return {"error":"Invalid volume level","data":None},422
@@ -157,13 +201,16 @@ def settingsControl():
         elif recieveData["setting"] == "partymode-toggle":
             if ADMIN_PASS == recieveData['password'] or controlPerms["PM"]:
                 partyMode = not(partyMode)
+                partyModeStr = "On" if partyMode else "Off"
+                socketio.emit("settingsChange",{"settingToChange":"partymode","newData":partyModeStr})
                 return ERR_200
             else:
                 return ERR_NO_ADMIN
         elif recieveData["setting"] == "perms":
             if ADMIN_PASS == recieveData["password"]:
                 controlPerms = recieveData["admin"]
-                print(recieveData["admin"])
+                # print(recieveData["admin"])
+                socketio.emit("settingsChange",{"settingToChange":"perms","newData":controlPerms})
                 return ERR_200
             else:
                 return ERR_NO_ADMIN
@@ -261,8 +308,11 @@ def getPlaylist():
         }
         tempPlaylist.append({i:k})
     fileofDB.close()
-    
-    return {"error":"ok","data":tempPlaylist}
+    playingState = False
+    if(str(player.get_state())=="State.Playing"):
+        playingState = True
+    # print(playingState)
+    return {"error":"ok","data":{"playlist":tempPlaylist,"playingState":playingState}},200
 
 if __name__ == "__main__":
     # There's not really a whole lot of point to a main function for something like this, you'd never use any of these methods
@@ -271,5 +321,5 @@ if __name__ == "__main__":
     queueThread = threading.Thread(target=playQueuedSongs)
     queueThread.daemon = True
     queueThread.start()
-    app.run(host='0.0.0.0', port=portTheUserPicked)
+    socketio.run(app=app,host='0.0.0.0', port=portTheUserPicked)
     
