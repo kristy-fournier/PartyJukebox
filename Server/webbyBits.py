@@ -190,8 +190,12 @@ def settingsControl():
                 volumeLevel = int(recieveData["level"])
                 if(volumeLevel <= 100 and volumeLevel >= 0):
                     volumePassed = player.audio_set_volume(volumeLevel)
-                    socketio.emit("settingsChange")
-                    return {"error":"ok","data":{"volumePassed":volumePassed}},200
+                    if(volumePassed == 0):
+                        # only emit a signal i the volume really changed
+                        socketio.emit("settingsChange",{"settingToChange":"volume","newData":volumeLevel})
+                        return {"error":"ok","data":{"volumePassed":volumePassed}},200
+                    else:
+                        return {"error":"VLC cannot take volume change requests at this time","data":None},500
                 else:
                     return {"error":"Invalid volume level","data":None},422
             else:
@@ -199,15 +203,16 @@ def settingsControl():
         elif recieveData["setting"] == "partymode-toggle":
             if ADMIN_PASS == recieveData['password'] or controlPerms["PM"]:
                 partyMode = not(partyMode)
-                socketio.emit("settingsChange")
+                partyModeStr = "On" if partyMode else "Off"
+                socketio.emit("settingsChange",{"settingToChange":"partymode","newData":partyModeStr})
                 return ERR_200
             else:
                 return ERR_NO_ADMIN
         elif recieveData["setting"] == "perms":
             if ADMIN_PASS == recieveData["password"]:
-                socketio.emit("settingsChange")
                 controlPerms = recieveData["admin"]
                 # print(recieveData["admin"])
+                socketio.emit("settingsChange",{"settingToChange":"perms","newData":controlPerms})
                 return ERR_200
             else:
                 return ERR_NO_ADMIN

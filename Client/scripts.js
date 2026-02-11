@@ -299,11 +299,17 @@ async function displayElapsedPlaylistTime(elapsed=0,length=-1) {
 async function updateSingleSetting(data) {
     let toBeChanged = data["settingToChange"];
     if (toBeChanged === "partymode") {
-
+        document.getElementById("partymode-button").textContent = data["newData"];
     } else if (toBeChanged === "perms") {
-
+        let currentAdminPerms = data["newData"];
+        document.getElementById("addsongsettingcheckbox").checked = currentAdminPerms["AS"];
+        document.getElementById("skipsongsettingcheckbox").checked = currentAdminPerms["SK"];
+        document.getElementById("playpausesettingcheckbox").checked = currentAdminPerms["PP"];
+        document.getElementById("partymodesettingcheckbox").checked = currentAdminPerms["PM"];
+        document.getElementById("volumechangesettingcheckbox").checked = currentAdminPerms["VOL"];
+        document.getElementById("duplicateallowesettingcheckbox").checked = currentAdminPerms["DUP"];
     } else if (toBeChanged === "volume") {
-
+        document.getElementById("volumerange").value = data["newData"];
     }
 }
 
@@ -608,9 +614,10 @@ document.addEventListener('keydown', function(e){
 }})
 document.getElementById("playlist-mode").style.display = "none";
 document.getElementById("settings-mode").style.display = "none";
-document.getElementById("volumerange").onchange = async function() {
+document.getElementById("volumerange").onchange = async function(e) {
     // there is no reason for this not to be a defined function
     // FIX THIS
+    console.log(e);
     let returnValue = await getFromServer({setting:"volume",level:this.value}, "settings")
     if (returnValue["status"] == ERR_NO_ADMIN) {
         // alertText("Error: Admin restricted action");
@@ -716,6 +723,7 @@ socket.on("settingsChange",(data) => {
         console.log("working");
         justChangedSetting = false;
     } else {
-        checkSettings();
+        // checkSettings();
+        updateSingleSetting(data);
     }
 });
