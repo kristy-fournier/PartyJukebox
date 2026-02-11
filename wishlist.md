@@ -1,4 +1,4 @@
-## Wishlist
+# Wishlist
 *Features I would like to add, will be completed in any order*
 - [ ] Loading indicator while awaiting server stuff
 - [ ] Refactoring existing code
@@ -22,6 +22,10 @@
     - Without a login system there's no easy way to give credits to specific clients (and a login is beyond scope of what I want to do)
         - Potentially a "redemption code" system, which can be tracked client side
     - All of this is very hackable without a server-side login.
+
+## Completed Features
+These will still be updated, but they're in a state that I am happy with them
+- [x] Admin password
 - [x] Websockets / some method of updating the time remaining to any client on the playlist screen
     - [x] Set a timeout to change the time (to start)
     - [x] Send updates to the playlist in real time when songs are added
