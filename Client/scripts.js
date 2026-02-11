@@ -67,9 +67,9 @@ async function getFromServer(bodyInfo, source="", secure=false, password=adminPa
             // im suprised i didn't comment on this already but this is kinda lame desing
             // its not wrong but you know
             // it is easy which i like
-            // and it overrides any other non-async alerts which is nice
             alertText("Error: Admin restricted action")
         } else if(!response.ok){
+            throw new Error(data.error);
             alertText("Error: "+data.error);
         }
         // we add some information from the response just in case it is needed
@@ -502,7 +502,7 @@ async function generateVisualPlaylist(conditions="") {
 
 async function submitSong(songid) {
     let returncode = await getFromServer({song: songid}, "songadd");
-    if(returncode == ERR_NO_ADMIN) {
+    if(returncode["status"] === ERR_NO_ADMIN) {
         // right now the error is alerted in getFromServer, maybe will change that
     } else if(returncode["status"]!==200) {
         alertText("That song's already in the queue! Hang on!")
