@@ -22,10 +22,10 @@
     - Without a login system there's no easy way to give credits to specific clients (and a login is beyond scope of what I want to do)
         - Potentially a "redemption code" system, which can be tracked client side
     - All of this is very hackable without a server-side login.
-- [ ] Websockets / some method of updating the time remaining to any client on the playlist screen
+- [x] Websockets / some method of updating the time remaining to any client on the playlist screen
     - [x] Set a timeout to change the time (to start)
     - [x] Send updates to the playlist in real time when songs are added
         - [x] Update the playlist's html without destroying it (create 1 new element)
     - [x] Tell clients looking at the playlist when the song has been paused (so they can pause the local timers)
     - [x] Settings updates
-        - [ ] Without re-posting the server (contain update data in websocket ping)
+        - [x] Without re-posting the server (contain update data in websocket ping)
