@@ -1,5 +1,5 @@
 from flask import Flask
-from flask import request
+from flask import request,render_template
 from flask_cors import CORS
 from flask_socketio import SocketIO
 import sqlite3 as sql
@@ -142,6 +142,10 @@ def playQueuedSongs():
 @socketio.on("connect")
 def handleConnect():
     pass
+
+@app.route("/",methods=['GET'])
+def returnStaticFile():
+    return render_template("index.html")
 
 @app.route("/controls", methods=['POST'])
 def playerControls():
