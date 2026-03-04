@@ -198,12 +198,12 @@ async function searchSongs(searchTerm){
         newItem.appendChild(head3);
         newItem.appendChild(head4);
         // I like this concept but i'm leaving it out for now
-        // if(currentSongInJSON.lossless === 1) {
-        //     let losslesstag = document.createElement("p");
-        //     losslesstag.textContent = "Ⓛ";
-        //     losslesstag.classList.add("lossless-tag");
-        //     newItem.appendChild(losslesstag);
-        // }
+        if(currentSongInJSON.lossless === 1) {
+            let losslesstag = document.createElement("p");
+            losslesstag.textContent = "Ⓛ";
+            losslesstag.classList.add("lossless-tag");
+            newItem.appendChild(losslesstag);
+        }
         document.getElementById("songlist").appendChild(newItem);
     
     } 
