@@ -1,9 +1,12 @@
+import eventlet
+eventlet.monkey_patch()
 from flask import Flask
 from flask import request,render_template
 from flask_cors import CORS
 from flask_socketio import SocketIO
 import sqlite3 as sql
 import vlc,threading,time,random,argparse,dotenv,os,hashlib,string
+
 # Argparse Stuff
 parser=argparse.ArgumentParser(description="Options for the Webby Bits")
 # parser.add_argument('-p','--port',help="Port to host on, not the same as the web (client) port",default='19054')
