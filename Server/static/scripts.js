@@ -81,7 +81,7 @@ async function getFromServer(bodyInfo, source="", secure=false, password=adminPa
         // console.log("error print here:");
         // console.log(e);
         if (e.toString().includes("TypeError: Failed to fetch")){
-            alertText("Error: Can't Connect to Server (is the ip set?)")
+            alertText("Error: Can't Connect to Server")
         } else {
             alertText(e);
         }
@@ -224,38 +224,6 @@ function alertTimeSet(time) {
     alertTime = time;
     document.cookie = "alertTime="+alertTime+"; path=/;"
     alertText("Alerts stay on screen for " + alertTime.toString() + " seconds")
-}
-
-function ipSetEnter(e){
-    if (e.key == "Enter") {
-        e.preventDefault();
-        // why on gosh's green earth am i sending a value here?
-        // im gonna get rid of all these individual "enter" dectectors and do something
-        // like i did for the keyboard selection of elements
-        // basically just if(e==click || e.key == enter)
-        ipSetter(document.getElementById("iptextbox").value)
-    }
-}
-
-function ipSetter(){
-    ipBox = document.getElementById("iptextbox").value
-    if (ipBox == "") {
-        alertText("Your IP is set to "+ip)
-    } else {
-        if (ipBox.includes(":")) {
-            port = ipBox.slice(ipBox.indexOf(":")+1)
-            ip = ipBox;
-            document.cookie = "ip="+ip+"; path=/;"
-            alertText("Your IP is now set to "+ip.slice(0, ipBox.indexOf(":"))+" at port "+port)
-        } else {
-            ip = ipBox + ":19054"
-            document.cookie = "ip="+ip+"; path=/;"
-            alertText("Your IP is now set to "+ipBox+" at port 19054 (Default)")
-        }
-    }
-    // anytime the server ip changes the qrcode should change to use it
-    qrCodeGenerate()
-        
 }
 
 function qrCodeGenerate() {
@@ -663,20 +631,6 @@ document.getElementById("songlist").addEventListener('click', function(e){checkW
 // replaced this with "transform" css stuff
 // let tempWidth = document.getElementById('controls').clientWidth;
 // document.getElementById("controls").style.marginLeft = "-"+String(parseInt(tempWidth/2))+"px";
-
-//for my use case (my immediate family), they dont know how to set an ip
-//using this allows the creator of the link for, a qr code for example, to set the ip before distributing the code, and it would all work smoothly
-//example (http://192.168.1.100:8000/?ip=192.168.1.100:19054 sets the ip to the same host at the default port)
-//the port must be set manually using this method, but only has to be done once for the url that ends up being shared
-
-//tries the url first, then the cookie, then the default
-ip = params.get("ip")
-if (ip == null || ip=="") {
-    ip=getCookie("ip")
-}
-if (ip==null || ip==""){
-    ip = URL.parse(document.URL).host;
-}
 
 // saving the cookies (don't tell the EU)
 document.cookie = "ip="+ip+"; path=/;"
