@@ -66,10 +66,8 @@ player = vlcInstance.media_player_new()
 # for client side volume to work as well as possible, set system volume to 100 and control in app
 player.audio_set_volume(100)
 app = Flask(__name__)
-# because you are POSTing from another domain to this one, you need CORS
-CORS(app)
 # Replace the star with the frontend domain if you dislike being hacked
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app)
 
 def queueSong(song):
     with playlistLock:
