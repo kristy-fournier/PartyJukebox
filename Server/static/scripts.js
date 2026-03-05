@@ -1,5 +1,5 @@
 // set all the global stuff
-let ip;
+let ip = URL.parse(document.URL).host;
 let alertTime = 2;
 let adminPass = "";
 let justSkipped = false;
@@ -187,7 +187,7 @@ async function searchSongs(searchTerm){
             }
             image.src = currentSongInJSON["art"];
         } catch(err){
-            image.src = "./images/placeholder.png";
+            image.src = "/static/images/placeholder.png";
         }
         image.id = String(fileName)+" image";
         let head3 = document.createElement("h3");
@@ -317,12 +317,12 @@ async function updateSingleSetting(data) {
 
 async function checkSettings(skipServer=false) {
     //check client stuff first so if the server doesn't exist it can still be changed and seen
-    if (ip.slice(-5)=="19054") {
-        // don't show the port if it is the default
-        document.getElementById("iptextbox").value = ip.slice(0,-6)
-    } else {
-        document.getElementById("iptextbox").value = ip;
-    }
+    // if (ip.slice(-5)=="19054") {
+    //     // don't show the port if it is the default
+    //     document.getElementById("iptextbox").value = ip.slice(0,-6)
+    // } else {
+    //     document.getElementById("iptextbox").value = ip;
+    // }
     qrCodeGenerate()
     document.getElementById("alerttimetextbox").value = alertTime
     partyButtonState = document.getElementById("partymode-button").innerHTML;
@@ -372,7 +372,7 @@ async function addToPlaylist(songObject) {
         }
         image.src = songObject[newItem.id]["art"];
     } catch(err){
-        image.src = "./images/placeholder.png";
+        image.src = "static/images/placeholder.png";
     }
     image.id = String(songObject[newItem.id])+" image";
     let head3 = document.createElement("h3");
@@ -462,7 +462,7 @@ async function generateVisualPlaylist(conditions="") {
                 }
                 image.src = playlist[i]["art"];
             } catch(err){
-                image.src = "./images/placeholder.png";
+                image.src = "/static/images/placeholder.png";
             }
             image.id = String(fileName)+" image";
             let head3 = document.createElement("h3");
@@ -648,7 +648,7 @@ document.getElementById("search-button").addEventListener('click', function(){co
 document.getElementById("skip-button").addEventListener('click',function(){controlButton("sk")});
 document.getElementById("go-search").addEventListener('click', function(){searchSongs(document.getElementById("songsearch").value)})
 document.getElementById("songsearch").addEventListener('keydown', function(e){searchSongsEnter(e)});
-document.getElementById("iptextbox").addEventListener('keydown', function(e){ipSetEnter(e)});
+// document.getElementById("iptextbox").addEventListener('keydown', function(e){ipSetEnter(e)});
 document.getElementById("alerttimetextbox").addEventListener('keydown', function(e){alertTimeEnter(e)});
 document.getElementById("adminpasswordbox").addEventListener('keydown',function(e){adminPassEnter(e)});
 document.getElementById("admincheckholder").addEventListener('click',function(e){submitPerms(e)});
@@ -675,7 +675,7 @@ if (ip == null || ip=="") {
     ip=getCookie("ip")
 }
 if (ip==null || ip==""){
-    ip = ""
+    ip = URL.parse(document.URL).host;
 }
 
 // saving the cookies (don't tell the EU)

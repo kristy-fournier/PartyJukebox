@@ -3,8 +3,8 @@
 <head>
     <title>Jukebox Controller</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-    <link rel="stylesheet" href="styles.css">
-    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="manifest" href="/static/manifest.json" />
     <meta charset="utf-8">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.11.0/sha256.min.js"></script> 
     <!-- above allows use of sha256() on http -->
@@ -12,7 +12,7 @@
 </head>
 <body id="test-body">
     <!--Cookie Popup(does it matter if im not tracking them? i have no idea)-->
-    <script type="text/javascript" src="/ext/popper.js"></script><script> window.start.init({Palette:"palette2",Mode:"floating left",Theme:"classic",LinkText:" Learn More!",Message:"This website uses cookies to save necessary data to your device, and no tracking is performed.",Time:"0",})</script>
+    <script type="text/javascript" src="/static/ext/popper.js"></script><script> window.start.init({Palette:"palette2",Mode:"floating left",Theme:"classic",LinkText:" Learn More!",Message:"This website uses cookies to save necessary data to your device, and no tracking is performed.",Time:"0",})</script>
     
     <div class="intro">
         <h1 id="title">Jukebox Remote</h1>
@@ -63,11 +63,11 @@ changes visibility with JS-->
                 <p class="italic">Opposite of light mode</p>
                 <button title="darkmode-button" id="darkmode-button">Off</button>
             </div>
-            <div class="item">
+            <!-- <div class="item">
                 <h2 for="iptextbox">Server IP:</h2>
                 <p class="italic">IP of the device running the song server</p>
                 <input title="iptextbox" style="width:200px" type="text" id="iptextbox" enterkeyhint="Done">
-            </div>
+            </div> -->
             <div class="item">
                 <h2 for="alerttimetextbox">Alert Time:</h2>
                 <p class="italic">How long alerts stay on screen for (seconds)</p>
@@ -119,15 +119,15 @@ changes visibility with JS-->
     </div>
     <!--All the buttons are down here but settings is just doing its own thing-->
     <div id="controls" class="controls">
-        <img tabindex=0 class="control-button" id="playlist-button" src="./images/playlist.png" alt="Playlist"></img>
-        <img tabindex=0 class="control-button" id="play-pause-button" src="./images/play-pause.png" alt="Play pause"></img>
-        <img tabindex=0 class="control-button" id="skip-button" src="./images/skip.png" alt="Skip"></img>
-        <img tabindex=0 class="control-button" id="search-button" src="./images/search.png" alt="Search"></img>    
+        <img tabindex=0 class="control-button" id="playlist-button" src="/static/images/playlist.png" alt="Playlist"></img>
+        <img tabindex=0 class="control-button" id="play-pause-button" src="/static/images/play-pause.png" alt="Play pause"></img>
+        <img tabindex=0 class="control-button" id="skip-button" src="/static/images/skip.png" alt="Skip"></img>
+        <img tabindex=0 class="control-button" id="search-button" src="/static/images/search.png" alt="Search"></img>    
     </div>
     <div class="settings-button-holder">
-    <img tabindex=0 class="settings-button control-button" id="settings-button" src="./images/settings.png" alt="settings"></img>
+    <img tabindex=0 class="settings-button control-button" id="settings-button" src="/static/images/settings.png" alt="settings"></img>
     </div>
-    <script src="/ext/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="scripts.js"></script>
+    <script src="/static/ext/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="/static/scripts.js"></script>
 </body>
 </html>
