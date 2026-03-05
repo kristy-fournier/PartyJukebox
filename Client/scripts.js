@@ -83,7 +83,7 @@ async function getFromServer(bodyInfo, source="", secure=false, password=adminPa
         if (e.toString().includes("TypeError: Failed to fetch")){
             alertText("Error: Can't Connect to Server (is the ip set?)")
         } else {
-            alertText("Error: " + e);
+            alertText(e);
         }
         const response=null;
         return response;
