@@ -15,7 +15,7 @@ let currentlyPlaying = false;
 const params = new URLSearchParams(location.search);
 
 let darkmodetemp = getCookie("darkmode");
-if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && darkmodetemp === undefined) {
     darkmodetemp = "true";
 }
 if(darkmodetemp === "") {
@@ -191,8 +191,10 @@ async function searchSongs(searchTerm){
         }
         image.id = String(fileName)+" image";
         let head3 = document.createElement("h3");
+        head3.id = fileName;
         head3.innerText = currentSongInJSON["title"];
         let head4 = document.createElement("h4");
+        head4.id = fileName;
         head4.innerText = currentSongInJSON["artist"];
         newItem.appendChild(image);
         newItem.appendChild(head3);
@@ -489,6 +491,7 @@ async function submitSong(songid) {
 function checkWhatSongWasClicked(e) {
     if(e.type == "click" || e.key == "Enter") {
         itemId = e.srcElement.id;
+        // console.log(e.srcElement);
         if ((itemId.length-itemId.lastIndexOf("image") == 5) && itemId.lastIndexOf("image")!=-1) {
             itemId = itemId.slice(0,-6)
         }
@@ -565,7 +568,7 @@ async function submitPerms(e) {
 
 async function clearPlaylist() {
     let returncode = await getFromServer({control:"clear"},"controls");
-    if(returncode == ERR_NO_ADMIN || returncode == null) {
+    if(returncode["status"] === ERR_NO_ADMIN || returncode == null) {
         // alertText("Admin Restricted ")
         // there's an admin restrict alert built into getFromServer
     } else {

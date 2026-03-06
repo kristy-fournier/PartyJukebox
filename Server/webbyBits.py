@@ -137,7 +137,7 @@ def playQueuedSongs():
         # check for new songs every second
         # I just didn't want to eat too much processing looping 
         # this also has another useful affect that skips get "queued" to only 1 per second, that way somebody usually can't skip twice accidentally
-        time.sleep(1)
+        socketio.sleep(1)
 
 @socketio.on("connect")
 def handleConnect():
