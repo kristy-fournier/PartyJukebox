@@ -102,7 +102,7 @@ def playQueuedSongs():
             counter+=1
             if(counter > 2):
                 playingState = str(player.get_state()) == "State.Playing"
-                socketio.emit('timeUpdate',{"elapsedTime":player.get_time()/1000,"playingState":playingState})
+                socketio.emit('timeUpdate',{"elapsedTime":player.get_time()/1000,"playingState":playingState,"songLength":player.get_length()/1000})
                 counter = 0
             playerState = str(player.get_state())
             endStates = ["State.Ended","State.Stopped","State.NothingSpecial"]

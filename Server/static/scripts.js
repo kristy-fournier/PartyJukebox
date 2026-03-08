@@ -664,7 +664,8 @@ socket.on("timeUpdate", function(data) {
     // console.log("recieved data from timeUpdate");
     // console.log(data);
     playlistElapsedSeconds = data["elapsedTime"];
-    currentlyPlaying = data["playingState"]
+    currentlyPlaying = data["playingState"];
+    playlistSongLength = data["songLength"]
 });
 
 socket.on("skipSong",() => {
