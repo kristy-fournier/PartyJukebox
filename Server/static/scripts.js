@@ -40,14 +40,42 @@ async function alertText(text="Song Added!") {
         alertbox.innerHTML = ""
     }
 }
+
+async function getFromServer(source,headersIn={},secure = false, password=adminPass) {
+    try {
+        let href = "";
+        if(secure) {
+            href = "https://"+ip+"/" + source;
+        } else {
+            href = "http://"+ip+"/" + source;
+        }
+        headersIn["Jukebox-Auth"] = password;
+        headersIn["Accept"] = "application/json";
+        let response = await fetch(href,{
+            method:"GET",
+            headers:headersIn,
+        })
+        let data = await response.json();
+        if (response.status == ERR_NO_ADMIN) {
+            alertText("Error: Admin restricted action")
+        } else if(!response.ok){
+            throw new Error(data.error);
+        }
+        // we add some information from the response just in case it is needed
+        data["ok"] = response.ok;
+        data["status"] = response.status;
+        // console.log(data);
+        return await data;
+    } catch(e) {
+        alertText(e);
+    }
+    
+}
+
 // a lot of this is kinda waffly because i was trying to get 
 // it to return the right stuff and javascript is asyrcronouse (boo)
-async function getFromServer(bodyInfo, source="", secure=false, password=adminPass) {
+async function postFromServer(bodyInfo, source="", secure=false, password=adminPass) {
     try{
-        if (bodyInfo != null) {
-            // the currently set password is always included in every request
-            bodyInfo["password"] = password;
-        }
         let href = "";
         if(secure) {
             href = "https://"+ip+"/" + source;
@@ -58,7 +86,8 @@ async function getFromServer(bodyInfo, source="", secure=false, password=adminPa
             method: "POST",
             body: JSON.stringify(bodyInfo),
             headers: {
-                "Content-type": "application/json; charset=UTF-8"
+                "Content-type": "application/json; charset=UTF-8",
+                "Jukebox-Auth": password
             }
             });
         
@@ -111,12 +140,12 @@ function getCookie(cname) {
 // also someone who likes things not being dumb more than me would have separated the client and server buttons
 async function controlButton(buttonType) {
     if (buttonType == "pp") { // Play-Pause button
-        let result = await getFromServer({control: "play-pause"}, "controls");
+        let result = await postFromServer({control: "play-pause"}, "controls");
         // console.log(result);
         currentlyPlaying = result["data"]["playingState"];
     } else if (buttonType == "sk") { // Skip button
         // clearInterval(playlistTimeTimer);
-        let returnCode = await getFromServer({control: "skip"}, "controls");
+        let returnCode = await postFromServer({control: "skip"}, "controls");
         // console.log(returnCode["ok"])
         if(returnCode["ok"]) {
             if (document.getElementById("playlist-mode").style.display == "block") {
@@ -149,7 +178,7 @@ async function controlButton(buttonType) {
         document.getElementById("settings-mode").style.display = "block";
         checkSettings()
     } else if (buttonType == "pm") { //Partymode toggle (in settings)
-        let response = await getFromServer({setting: "partymode-toggle"}, "settings")
+        let response = await postFromServer({setting: "partymode-toggle"}, "settings")
         if(response.ok) {
             justChangedSetting = true;
             checkSettings();
@@ -171,7 +200,7 @@ function searchSongsEnter(e) {
 
 async function searchSongs(searchTerm){
     document.getElementById("songlist").innerHTML = ""
-    let fetchResults = await getFromServer({search:searchTerm},"search").then();
+    let fetchResults = await getFromServer("search?query="+searchTerm);
     let searchResults = fetchResults.data;
     //generate the visual song list
     for(var fileName in searchResults) {
@@ -229,7 +258,7 @@ function alertTimeSet(time) {
 }
 
 function qrCodeGenerate() {
-    let tempURL = "http://" + document.location.href.split("/")[2] + "/?ip=" + ip;
+    let tempURL = "http://" + URL.parse(document.location.href).host
     document.getElementById("qrcode").innerHTML = "";
     // get the current foreground and background
     let dark = window.getComputedStyle(document.body).getPropertyValue("--text-color");
@@ -304,7 +333,7 @@ async function checkSettings(skipServer=false) {
         }
     }
     //ping the server here
-    data = await getFromServer({setting: "getsettings"}, "settings");
+    data = await getFromServer("settings");
     x = data["data"];
     if (!(skipServer) || partyButtonState=="N/A") {
         if (x["partymode"] == false) {
@@ -401,7 +430,7 @@ async function skipInPlaylist()  {
 
 async function generateVisualPlaylist(conditions="") {
     document.getElementById("playlist").innerHTML = "<h1 id=\"playlist-alert\"></h1>";
-    data = await getFromServer(null, "playlist");
+    data = await getFromServer("playlist");
     playlist = data["data"]["playlist"];
     currentlyPlaying = data["data"]["playingState"]
     playlist = Object.values(playlist).map(obj => {
@@ -479,9 +508,9 @@ async function generateVisualPlaylist(conditions="") {
 }
 
 async function submitSong(songid) {
-    let returncode = await getFromServer({song: songid}, "songadd");
+    let returncode = await postFromServer({song: songid}, "songadd");
     if(returncode["status"] === ERR_NO_ADMIN) {
-        // right now the error is alerted in getFromServer, maybe will change that
+        // right now the error is alerted in postFromServer, maybe will change that
     } else if(returncode["status"]!==200) {
         alertText("That song's already in the queue! Hang on!")
     } else {
@@ -555,7 +584,7 @@ async function submitPerms(e) {
     tempData["PM"] = document.getElementById("partymodesettingcheckbox").checked;
     tempData["VOL"] = document.getElementById("volumechangesettingcheckbox").checked;
     tempData["DUP"] = document.getElementById("duplicateallowesettingcheckbox").checked;
-    let returncode = await getFromServer({"setting":"perms","admin":tempData},"settings");
+    let returncode = await postFromServer({"setting":"perms","admin":tempData},"settings");
     if (!(returncode["ok"])) {
         // if you aren't allowed to check the box then toggle it again
         // its not perfect if you spam click, but it gets the point across to the user
@@ -567,7 +596,7 @@ async function submitPerms(e) {
 }
 
 async function clearPlaylist() {
-    let returncode = await getFromServer({control:"clear"},"controls");
+    let returncode = await postFromServer({control:"clear"},"controls");
     if(returncode["status"] === ERR_NO_ADMIN || returncode == null) {
         // alertText("Admin Restricted ")
         // there's an admin restrict alert built into getFromServer
@@ -590,7 +619,7 @@ document.getElementById("settings-mode").style.display = "none";
 document.getElementById("volumerange").onchange = async function(e) {
     // there is no reason for this not to be a defined function
     // FIX THIS
-    let returnValue = await getFromServer({setting:"volume",level:e.target.value}, "settings")
+    let returnValue = await postFromServer({setting:"volume",level:e.target.value}, "settings")
     if (returnValue["status"] == ERR_NO_ADMIN) {
         // alertText("Error: Admin restricted action");
         // there's an admin restrict alert built into getFromServer

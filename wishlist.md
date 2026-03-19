@@ -1,5 +1,9 @@
 # Wishlist
 *Features I would like to add, will be completed in any order*
+- [ ] RESTful design
+    - [ ] Change all necesary POSTs to GET,DELETE (probably not PUT)
+    - [ ] Write an api layout
+        - Despite the fact this isn't necesary (nobody but the app should access any url but root) it's probably still a good idea. It's going to be very simple anyway
 - [ ] Loading indicator while awaiting server stuff
 - [ ] Refactoring existing code
     - [x] Remove old comments

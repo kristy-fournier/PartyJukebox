@@ -33,7 +33,7 @@ controlPerms = {
     "AS":True, 
     "PM":True, 
     "VOL":True,
-    "DUP":True # Not implemented, allow duplicate songs in queue
+    "DUP":True
 }
 
 fileofDB = sql.connect("songDatabase.db")
@@ -155,7 +155,7 @@ def playerControls():
     recieveData=request.get_json(force=True)
     try:
         if recieveData["control"] == "play-pause":
-            if ADMIN_PASS == recieveData['password'] or controlPerms["PP"]:
+            if ADMIN_PASS == request.headers["Jukebox-Auth"] or controlPerms["PP"]:
                 playingState = str(player.get_state())=="State.Playing"
                 player.pause()
                 return {"error":"ok","data":{"playingState":not(playingState)}},200
@@ -163,14 +163,14 @@ def playerControls():
                 playingState = str(player.get_state())=="State.Playing"
                 return {"error":"Admin Restricted Action","data":{"playingState":playingState}},401
         elif recieveData["control"] == "skip":
-            if ADMIN_PASS == recieveData['password'] or controlPerms["SK"]:
+            if ADMIN_PASS == request.headers["Jukebox-Auth"] or controlPerms["SK"]:
                 skipNow = True
                 return ERR_200
             else:
                 return ERR_NO_ADMIN
         # Maybe i should have put this next one in the "settings" section
         elif recieveData["control"] == "clear":
-            if ADMIN_PASS == recieveData['password']: # this is only ever allowed with the adminpassword
+            if ADMIN_PASS == request.headers["Jukebox-Auth"]: # this is only ever allowed with the adminpassword
                 with playlistLock:
                     playlist.clear()
                 return ERR_200
@@ -181,64 +181,64 @@ def playerControls():
     except KeyError:
         return ERR_MISSING_ARGS
 
-@app.route("/settings", methods=['POST'])
+@app.route("/settings", methods=['POST','GET'])
 def settingsControl():
     global controlPerms
     # set the volume and partymode
     global partyMode
     global player
-    recieveData = request.get_json(force=True)
-    try:
-        if recieveData["setting"] == "volume":
-            if ADMIN_PASS == recieveData['password'] or controlPerms["VOL"]:
-                volumeLevel = int(recieveData["level"])
-                if(volumeLevel <= 100 and volumeLevel >= 0):
-                    volumePassed = player.audio_set_volume(volumeLevel)
-                    if(volumePassed == 0):
-                        # only emit a signal i the volume really changed
-                        socketio.emit("settingsChange",{"settingToChange":"volume","newData":volumeLevel})
-                    return {"error":"ok","data":{"volumePassed":volumePassed}},200
+    if (request.method == 'GET'):
+        return {"error":"ok","data":{"partymode":partyMode,"volume":player.audio_get_volume(),"admin":controlPerms}},200
+    elif (request.method == 'POST'):
+        recieveData = request.get_json(force=True)
+        try:
+            if recieveData["setting"] == "volume":
+                if ADMIN_PASS == request.headers["Jukebox-Auth"] or controlPerms["VOL"]:
+                    volumeLevel = int(recieveData["level"])
+                    if(volumeLevel <= 100 and volumeLevel >= 0):
+                        volumePassed = player.audio_set_volume(volumeLevel)
+                        if(volumePassed == 0):
+                            # only emit a signal i the volume really changed
+                            socketio.emit("settingsChange",{"settingToChange":"volume","newData":volumeLevel})
+                        return {"error":"ok","data":{"volumePassed":volumePassed}},200
+                    else:
+                        return {"error":"Invalid volume level","data":None},422
                 else:
-                    return {"error":"Invalid volume level","data":None},422
+                    return ERR_NO_ADMIN
+            elif recieveData["setting"] == "partymode-toggle":
+                if ADMIN_PASS == request.headers["Jukebox-Auth"] or controlPerms["PM"]:
+                    partyMode = not(partyMode)
+                    partyModeStr = "On" if partyMode else "Off"
+                    socketio.emit("settingsChange",{"settingToChange":"partymode","newData":partyModeStr})
+                    return ERR_200
+                else:
+                    return ERR_NO_ADMIN
+            elif recieveData["setting"] == "perms":
+                if ADMIN_PASS == request.headers["Jukebox-Auth"]:
+                    controlPerms = recieveData["admin"]
+                    # print(recieveData["admin"])
+                    socketio.emit("settingsChange",{"settingToChange":"perms","newData":controlPerms})
+                    return ERR_200
+                else:
+                    return ERR_NO_ADMIN
             else:
-                return ERR_NO_ADMIN
-        elif recieveData["setting"] == "partymode-toggle":
-            if ADMIN_PASS == recieveData['password'] or controlPerms["PM"]:
-                partyMode = not(partyMode)
-                partyModeStr = "On" if partyMode else "Off"
-                socketio.emit("settingsChange",{"settingToChange":"partymode","newData":partyModeStr})
-                return ERR_200
-            else:
-                return ERR_NO_ADMIN
-        elif recieveData["setting"] == "perms":
-            if ADMIN_PASS == recieveData["password"]:
-                controlPerms = recieveData["admin"]
-                # print(recieveData["admin"])
-                socketio.emit("settingsChange",{"settingToChange":"perms","newData":controlPerms})
-                return ERR_200
-            else:
-                return ERR_NO_ADMIN
-        elif recieveData["setting"] == "getsettings":
-            # probably should have made this a different request type or something but it works
-            return {"error":"ok","data":{"partymode":partyMode,"volume":player.audio_get_volume(),"admin":controlPerms}},200
-        else:
-            return {"error":"Not a valid setting","data":None},400
-    except:
-        return ERR_MISSING_ARGS
+                return {"error":"Not a valid setting","data":None},400
+        except Exception as e:
+            return {"error":e,"data":None},500
 
-@app.route("/search", methods=['POST'])
+@app.route("/search", methods=['GET'])
 def searchSongDB():
-    recieveData=request.get_json(force=True)
+    recieveData = request.args.get("query")
     fileofDB = sql.connect("songDatabase.db")
     songDatabase = fileofDB.cursor()
     try:
         results = []
         # print(recieveData["search"])
-        if (recieveData['search'] == ""):
+        if (recieveData == None or recieveData == ""):
             songDatabase.execute("SELECT * FROM virtualSongs")
             results = songDatabase.fetchall()
         else:
-            songDatabase.execute("SELECT * FROM virtualSongs WHERE virtualSongs MATCH ?",['"' + recieveData['search']+'"'])
+            songDatabase.execute("SELECT * FROM virtualSongs WHERE virtualSongs MATCH ?",['"' + recieveData +'"'])
             results = songDatabase.fetchall()
         tempdata = {}
         # this is a temporary solution so i dont have to change the client 
@@ -253,9 +253,6 @@ def searchSongDB():
         fileofDB.close()
 
         return {"error":"ok","data":tempdata},200
-    except KeyError:
-        fileofDB.close()
-        return ERR_MISSING_ARGS
     except sql.OperationalError as e:
         print(e)
         fileofDB.close()
@@ -266,9 +263,9 @@ def searchSongDB():
 def songadd():
     recieveData=request.get_json(force=True)
     try:
-        if (ADMIN_PASS == recieveData['password']) or controlPerms["AS"]:
+        if (ADMIN_PASS == request.headers["Jukebox-Auth"]) or controlPerms["AS"]:
             # Password exists and is correct, or it's not restricted
-            if not(controlPerms["DUP"]) and (recieveData['song'] in playlist) and not(ADMIN_PASS == recieveData['password']):
+            if not(controlPerms["DUP"]) and (recieveData['song'] in playlist) and not(ADMIN_PASS == request.headers["Jukebox-Auth"]):
                 return {"error":"This song is already in the queue, hang on!","data":None},409
             else:
                 queueSong(recieveData['song'])
@@ -280,7 +277,7 @@ def songadd():
         print(e)
         return ERR_MISSING_ARGS
 
-@app.route("/playlist", methods=["POST"])
+@app.route("/playlist", methods=["GET"])
 def getPlaylist():
     global songNext
     fileofDB = sql.connect("songDatabase.db")
