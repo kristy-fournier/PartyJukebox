@@ -26,7 +26,7 @@ else:
     ADMIN_PASS = hashlib.sha256(bytes(tempPass,'utf-8')).hexdigest()
     
 # True = everyone, False = admin only. Change in client while in use. 
-# play-pause,skip,addsong,partymode,volume in order
+# play-pause,skip,addsong,partymode,volume,add duplicates in order
 controlPerms = {
     "PP":True, 
     "SK":True, 
@@ -48,9 +48,6 @@ elif "/" in soundLocation:
     soundLocation += "/"
 else:
     soundLocation += "\\"
-#Create Virtual table for searching
-#I'm not sure why i don't do this in the databaseGenerator, but it also takes like 3 seconds so i'm not messing with it rn
-
 #Initializing all the global stuff
 random.seed()
 global partyMode
@@ -223,8 +220,9 @@ def settingsControl():
                     return ERR_NO_ADMIN
             else:
                 return {"error":"Not a valid setting","data":None},400
-        except Exception as e:
-            return {"error":e,"data":None},500
+        except KeyError as e:
+            print(f"Error: {e}")
+            return {"error":"Incorrect Data Sent","data":None},400
 
 @app.route("/search", methods=['GET'])
 def searchSongDB():

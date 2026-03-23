@@ -1,5 +1,6 @@
 # Wishlist
 *Features I would like to add, will be completed in any order*
+- [ ] Pages of song results, to avoid very long pages and large data being sent
 - [ ] RESTful design
     - [ ] Change all necesary POSTs to GET,DELETE (probably not PUT)
     - [ ] Write an api layout
