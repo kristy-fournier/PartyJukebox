@@ -5,12 +5,14 @@ from flask import request,render_template
 from flask_cors import CORS
 from flask_socketio import SocketIO
 import sqlite3 as sql
-import vlc,threading,time,random,argparse,dotenv,os,hashlib,string
+import vlc,threading,random,argparse,dotenv,os,hashlib,string,getpass
+
+# So i'm famously bad at following Semantic versioning, we're gonna see how this goes
+REL_VER_NUM = "0.0.1"
 
 # Argparse Stuff
 parser=argparse.ArgumentParser(description="Options for the Webby Bits")
-# parser.add_argument('-p','--port',help="Port to host on, not the same as the web (client) port",default='19054')
-parser.add_argument('-a','--admin',help="Add an admin password to be used in the client. DO NOT use a password you use elsewhere",default="")
+parser.add_argument('-a','--admin',help="Set as True to be prompted to",default=False)
 args = parser.parse_args()
 dotenv.load_dotenv()
 portTheUserPicked=os.getenv("SERVER_PORT")
@@ -18,8 +20,8 @@ portTheUserPicked=os.getenv("SERVER_PORT")
 ERR_NO_ADMIN = ({"error":"no-admin","data":None},401)
 ERR_200 = ({"error":"OK","data":None},200)
 ERR_MISSING_ARGS = ({"error":"Request missing required arguments","data":None}),400
-if args.admin:
-    ADMIN_PASS = hashlib.sha256(bytes(args.admin,'utf-8')).hexdigest()
+if bool(args.admin) and args.admin.lower() != "false":
+    ADMIN_PASS = hashlib.sha256(bytes(getpass.getpass("Enter AdminPass: "),'utf-8')).hexdigest()
 else:
     tempPass = ''.join(random.choices(string.ascii_letters + string.digits +"?"+"!",k=20))
     print("No adminPass was set, the auto generated one is: "+tempPass)
@@ -142,7 +144,7 @@ def handleConnect():
 
 @app.route("/",methods=['GET'])
 def returnStaticFile():
-    return render_template("index.html")
+    return render_template("index.html",REL_VER_NUM=REL_VER_NUM)
 
 @app.route("/controls", methods=['POST'])
 def playerControls():
@@ -320,5 +322,6 @@ if __name__ == "__main__":
     queueThread = threading.Thread(target=playQueuedSongs)
     queueThread.daemon = True
     queueThread.start()
+    print(f"PartyJukebox v{REL_VER_NUM} running on port {portTheUserPicked}")
     socketio.run(app=app,host='0.0.0.0', port=portTheUserPicked)
     
