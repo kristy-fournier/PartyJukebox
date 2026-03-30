@@ -9,11 +9,12 @@
 - [ ] Refactoring existing code
     - [x] Remove old comments
     - [ ] Update the SQL -> Server -> Client pipeline when searching and building playlist
+        - Moving to mongo might make more sense to maintain a dictionary/JSON like format, but that needs a server
     - [ ] Verify all if-else sequences are correct and not redundant
 - [ ] Security Updates
     - [x] `.env` file for the api keys and other runtime info to be set, rather than in the `.py` files
     - [x] Hashing rather than plaintext sending passwords (that way at least the password text itself isn't transmitted over the network)
-    - [ ] Actually use SSL, for posting (CORS seems like an issue)
+    - [ ] Actually use TLS, for posting (CORS seems like an issue)
 - [ ] Accessibility
     - [ ] Better use of semantic HTML tags
     - [ ] Full keyboard control (tab, enter to select, tab between control buttons)

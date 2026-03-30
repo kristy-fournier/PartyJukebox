@@ -33,8 +33,9 @@ webbyBits.py
     * *If getting images, this process may take a long time with a large amount of mp3 files*
 4. Run `webbyBits.py`
     * *The port can be customized by editing the `.env` file*
-    * *You can add an admin password at runtime with* `-a AdminPass` *as an atribute*
+    * *You can add an admin password at runtime with* `-a True` *as an atribute*
         * ***NOTE: Do not reuse ANY password for this, it is hashed but 100% unsecure. The best option is just a random string you write down once***
+        * You will be prompted in console for a password to be used
         * If this attribute isn't included a random string will be generated as the admin password
         * This is intended for protecting certain features for small closed events, not for public security
 
@@ -97,14 +98,15 @@ From left to right:
 
 The exact process of the password's plaintext scope is as follows
 
-- On the server, you type in the password on the server in the console, the python script takes that plaintext, hashes it, then stores that hash as a variable. The plaintext is also technically a variable, but it's not accessed after that initial hashing. (It's also going to be visible in your console history)
+- On the server, you type in the password on the server in the console, the python script takes that input directly, hashes it, then stores that hash as a variable. The plaintext could be in memory, but it's not accessible in the code after that initial hashing. If you typed your own password, it won't be visible in the console history after it is typed.
 
-- On the client, you type in the password and press enter. A function reads the value of the password box, saves the hash of that password to a variable, and sends it with all your requests. The plaintext is still stored in the inputbox, but if you delete it and don't press enter on the box again, the hash will be stored without keeping the plaintext. (I may change this behaviour so this box auto-clears when enter is pressed, maybe)
+- On the client, you type in the password and press enter. A function reads the value of the password box, saves the hash of that password to a variable, and sends it with all your requests. The plaintext is still stored in the input box, but if you delete it and don't press enter on the box again, the hash will be stored without keeping the plaintext. (I may change this behaviour so this box auto-clears when enter is pressed)
 
-None of this is "secure", but it's better than sending plaintext passwords, which is what I was doing before. Hypothetically somebody who intercepted your packet where you sent the password can't get back the original plaintext, just the hash. 
+None of this is "secure", but it's better than sending plaintext passwords, which is what I was doing before. Hypothetically somebody who intercepted any packets with the password can't get back the original plaintext, just the hash. 
 
 ## External Credits
  - QR Code Generator: JS file found [here](https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js)
- - Cookie Popup: JS file found [here](https://cookieconsent.popupsmart.com/src/js/popper.js)
+ - Socket.io: JS file found [here](https://cdn.socket.io/4.7.5/socket.io.min.js)
+ - SHA256 over http: JS file found [here](https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.11.0/sha256.min.js)
 
 *See `LICENSE.md` for redistribution and editing details.*
