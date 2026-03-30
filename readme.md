@@ -4,13 +4,12 @@
 You can use `--help` on any of the python files to see all the properties that can be changed at runtime
 ## Purpose
 The **Party Jukebox** is a program that allows many people to add music, skip songs, play, and pause from any web device to the same device and playlist. \
-This was created for a personal use case for parties, and is a simple, (mostly) functional solution to have a collective playlist for local mp3 files. \
-The main advantage compared to doing something similar using Spotify is that you can limit the songs that can be played to your selection. Songs can be chosen, but only from a list.
+This was created for a personal use case for parties, and is a simple solution to have a collective playlist for local audio files. \
+The main advantage compared to doing something similar using Spotify or another streaming service is that you can limit the songs that can be played to your selection. Songs can be chosen, but only from a list.
 ## Basic Setup
 ### Client Setup:
-The client is a web application that can be hosted on any server, it need not be the same device running the music player. 
-* If the app is being setup for a large group, you can distribute the url (via QR code, for example) with `?ip=YOURSERVERHOSTNAME:19054` set as an attribute after the url. 
-* You can also add `?darkmode=(true/false)` to set the default colour scheme, but this will be overwritten by the users saved choice in the cookie if they change it themselves
+The client is a web application hosted by the flask app running the audio player. 
+* You can add `?darkmode=(true/false)` to the client URL to set the default colour scheme, but this will be overwritten by the user's saved choice if they change it themselves
 ### Server Setup:
 **Pre-setup:** If you want the songs to have art associated with them, it is all hosted on and retrieved from LastFM, and you will need to sign up for a developer app, and put your key in the database generator \
 \
@@ -23,14 +22,15 @@ webbyBits.py
 .env
 ```
 
-1. Place mp3 files in the `sound/` folder
+1. Place audio files in the `sound/` folder
+    - Supports flac, mp3, and wav files
 2. Rename `example.env` to `.env` and...
     - Set the location where your audio files are (Default: `./sound/`)
     - Set the LastFM API key (Optional)
-    - Change the port of the webbybits server (Default: `19054` )
+    - Change the port of the app (Default: `19054` )
 3. Run `databaseGenerator.py` (Will try to use LastFM API key)
-    * *The `databaseGenerator.py` will index all mp3 files, and save the information to `songDatabase.db`*
-    * *If getting images, this process may take a long time with a large amount of mp3 files*
+    * *The `databaseGenerator.py` will index all audio files, and save the information to `songDatabase.db`*
+    * *If getting images, this process may take a long time with a large amount of audio files*
 4. Run `webbyBits.py`
     * *The port can be customized by editing the `.env` file*
     * *You can add an admin password at runtime with* `-a True` *as an atribute*
@@ -46,8 +46,8 @@ Read on for specific information on each piece of the app.
 ## Details
 These are specific details on each section of the app, and how to use them
 ### Server:
-- `sound/` contains all mp3 files by default
-- `databaseGenerator.py` scans through mp3 files and gets information about them
+- `sound/` contains all audio files by default
+- `databaseGenerator.py` scans through audio files and gets information about them
     - `Filename, Title, Artist, Art, Length` are all saved 
         - *If the title and artist are not in the file metadata, it looks for a format of* `TITLE_ARTIST.mp3` *then of* `ARTIST - TITLE.mp3` *and otherwise defaults to the file name as the title, and no artist*
         - Art is retrieved from LastFM
