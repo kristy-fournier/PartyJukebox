@@ -12,7 +12,7 @@ REL_VER_NUM = "0.0.1"
 
 # Argparse Stuff
 parser=argparse.ArgumentParser(description="Options for the Webby Bits")
-parser.add_argument('-a','--admin',help="Set as True to be prompted to",default=False)
+parser.add_argument('-a','--admin',help="Set as True to be prompted to enter an AdminPassword",default=False)
 args = parser.parse_args()
 dotenv.load_dotenv()
 portTheUserPicked=os.getenv("SERVER_PORT")
