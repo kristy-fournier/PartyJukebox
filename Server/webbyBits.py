@@ -42,8 +42,11 @@ fileofDB = sql.connect("songDatabase.db")
 songDatabase = fileofDB.cursor()
 
 #song directory
-songDatabase.execute("SELECT * FROM meta WHERE id='songDirectory';")
-soundLocation = songDatabase.fetchall()[0][1]
+try:
+    songDatabase.execute("SELECT * FROM meta WHERE id='songDirectory';")
+    soundLocation = songDatabase.fetchall()[0][1]
+except sql.OperationalError:
+    print("No Database Found, try running databaseGenerator.py")
 if soundLocation[-1] == "/" or soundLocation[-1] == "\\":
     pass
 elif "/" in soundLocation:
