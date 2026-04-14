@@ -626,7 +626,7 @@ document.getElementById("playlist-mode").style.display = "none";
 document.getElementById("settings-mode").style.display = "none";
 document.getElementById("volumerange").onchange = async function(e) {
     // there is no reason for this not to be a defined function
-    // FIX THIS
+    // TODO: FIX THIS
     let returnValue = await postFromServer({setting:"volume",level:e.target.value}, "settings")
     if (returnValue["status"] == ERR_NO_ADMIN) {
         // alertText("Error: Admin restricted action");
