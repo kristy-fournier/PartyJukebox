@@ -198,11 +198,17 @@ function searchSongsEnter(e) {
     }
 }
 
-async function searchSongs(searchTerm){
+async function searchSongs(searchTerm,page=-1){
     document.getElementById("songlist").innerHTML = ""
-    let fetchResults = await getFromServer("search?query="+searchTerm);
-    let searchResults = fetchResults.data;
+    let fetchResults = await getFromServer("search?query="+searchTerm+"&page="+page);
+    let searchResults = fetchResults.data.songsobj;
     //generate the visual song list
+    // let x = document.createElement("button")
+    // x.addEventListener("click",()=>{
+    //     searchSongs(searchTerm,page+1);
+    // })
+    // x.textContent = "Next Page"
+    // document.getElementById("songlist-mode").appendChild(x)
     for(var fileName in searchResults) {
         let currentSongInJSON = searchResults[fileName]
         let newItem = document.createElement("div");
@@ -241,6 +247,8 @@ async function searchSongs(searchTerm){
     if (JSON.stringify(searchResults)==JSON.stringify({})) {
         //display error if no results
         document.getElementById("songlist").innerHTML = "<h1>We might not have that one...</h1>";
+    } else {
+        
     }
 }
 

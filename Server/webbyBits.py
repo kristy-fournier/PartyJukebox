@@ -1,14 +1,14 @@
-import eventlet
-eventlet.monkey_patch()
+# import eventlet
+# eventlet.monkey_patch()
 from flask import Flask
 from flask import request,render_template
-from flask_cors import CORS
 from flask_socketio import SocketIO
 import sqlite3 as sql
 import vlc,threading,random,argparse,dotenv,os,hashlib,string,getpass
+from versionNum import VersionNumber
 
 # So i'm famously bad at following Semantic versioning, we're gonna see how this goes
-REL_VER_NUM = "0.0.1"
+REL_VER_NUM = VersionNumber(0,0,2,"alpha")
 
 # Argparse Stuff
 parser=argparse.ArgumentParser(description="Options for the Webby Bits")
@@ -19,7 +19,7 @@ portTheUserPicked=os.getenv("SERVER_PORT")
 
 ERR_NO_ADMIN = ({"error":"no-admin","data":None},401)
 ERR_200 = ({"error":"OK","data":None},200)
-ERR_MISSING_ARGS = ({"error":"Request missing required arguments","data":None}),400
+ERR_MISSING_ARGS = ({"error":"Request missing required arguments","data":None},400)
 if bool(args.admin) and args.admin.lower() != "false":
     ADMIN_PASS = hashlib.sha256(bytes(getpass.getpass("Enter AdminPass: "),'utf-8')).hexdigest()
 else:
@@ -47,6 +47,7 @@ try:
     soundLocation = songDatabase.fetchall()[0][1]
 except sql.OperationalError:
     print("No Database Found, try running databaseGenerator.py")
+    os._exit(1)
 if soundLocation[-1] == "/" or soundLocation[-1] == "\\":
     pass
 elif "/" in soundLocation:
@@ -147,7 +148,7 @@ def handleConnect():
 
 @app.route("/",methods=['GET'])
 def returnStaticFile():
-    return render_template("index.html",REL_VER_NUM=REL_VER_NUM)
+    return render_template("index.html",REL_VER_NUM=str(REL_VER_NUM))
 
 @app.route("/controls", methods=['POST'])
 def playerControls():
@@ -232,6 +233,9 @@ def settingsControl():
 @app.route("/search", methods=['GET'])
 def searchSongDB():
     recieveData = request.args.get("query")
+    page = int(request.args.get("page"))
+    if not(page):
+        page = 1
     fileofDB = sql.connect("songDatabase.db")
     songDatabase = fileofDB.cursor()
     try:
@@ -243,6 +247,12 @@ def searchSongDB():
         else:
             songDatabase.execute("SELECT * FROM virtualSongs WHERE virtualSongs MATCH ?",['"' + recieveData +'"'])
             results = songDatabase.fetchall()
+        pages = (len(results)//20)+1
+        if(page>0):
+            # Numbers <0 use old rendering
+            inBound = 20*(page-1)
+            outBound = 20*page
+            results = results[inBound:outBound]
         tempdata = {}
         # this is a temporary solution so i dont have to change the client 
         for i in results:
@@ -255,7 +265,7 @@ def searchSongDB():
             }
         fileofDB.close()
 
-        return {"error":"ok","data":tempdata},200
+        return {"error":"ok","data":{"songsobj":tempdata,"pages":pages}},200
     except sql.OperationalError as e:
         print(e)
         fileofDB.close()
@@ -325,6 +335,6 @@ if __name__ == "__main__":
     queueThread = threading.Thread(target=playQueuedSongs)
     queueThread.daemon = True
     queueThread.start()
-    print(f"PartyJukebox v{REL_VER_NUM} running on port {portTheUserPicked}")
+    print(f"PartyJukebox {REL_VER_NUM} running on port {portTheUserPicked}")
     socketio.run(app=app,host='0.0.0.0', port=portTheUserPicked)
     
