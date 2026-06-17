@@ -1,19 +1,26 @@
 from __future__ import annotations
 class VersionNumber:
-    def __init__(self,major:int,minor:int,patch:int,extra:str):
+    def __init__(self,major:int,minor:int,patch:int,extra:str=None):
         self.major = major
         self.minor = minor
         self.patch = patch
         self.extra = extra
     
-    # From String like "x.y.z-extra"
+    # From String like "x.y.z-extra" or "x.y.z"
     @staticmethod
     def fromString(verString:str) -> VersionNumber:
         numList = verString.split(".")
         major = int(numList[0])
         minor = int(numList[1])
-        patch = int(numList[2].split("-")[0])
-        extra = numList[2].split("-")[1]
+        finalSplit = numList[2].split("-")
+        patch = int(finalSplit[0])
+        extra = None
+        if len(finalSplit) > 1:
+            extra = finalSplit[1]
+        if extra.strip() == "":
+            # IDK if this is technically a rule of semantic versioning but i dont think x.y.z- should be valid 
+            extra = None
+
         return VersionNumber(major,minor,patch,extra)
 
     
@@ -21,7 +28,7 @@ class VersionNumber:
         return VersionNumber(verNumIn.major,verNumIn.minor,verNumIn.patch,verNumIn.extra)
 
     def __str__(self) -> str:
-        returnStr = f"v{self.major}.{self.minor}.{self.patch}"
+        returnStr = f"{self.major}.{self.minor}.{self.patch}"
         if(self.extra):
             returnStr += f"-{self.extra}"
         return returnStr
@@ -65,3 +72,4 @@ if __name__ == "__main__":
     print(f"Y < X: {y<x}")
     print(f"Z >= Y: {z>=y}")
     print(f"Z <= Y: {z<=y}")
+    print(f"Z == X: {z==x}")
