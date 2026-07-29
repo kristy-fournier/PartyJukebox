@@ -109,4 +109,11 @@ None of this is "secure", but it's better than sending plaintext passwords, whic
  - Socket.io: JS file found [here](https://cdn.socket.io/4.7.5/socket.io.min.js)
  - SHA256 over http: JS file found [here](https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.11.0/sha256.min.js)
 
+## AI Transparency
+
+Most of this code is my own. This is a project I started as a final for high school, and is the first large (for me) project I've worked on. I have always used basic chat AI to debug or for ideas about best practices, but now I've started to use agents(? is that what claude code is) to fully create new sections of the app. The first one of these is the loading wheel, in the top left of the GUI. There will be more as I continue to expiriment and use more AI. My plan is to keep this section as a list of the features created with AI. I'm very proud of this project, and I want to be clear about what is mine and what isn't.
+
+### AI Created Features
+- Loading Wheel (GUI)
+
 *See `LICENSE.md` for redistribution and editing details.*

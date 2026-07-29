@@ -42,6 +42,7 @@ async function alertText(text="Song Added!") {
 }
 
 async function getFromServer(source,headersIn={},secure = false, password=adminPass) {
+    showSpinner();
     try {
         let href = "";
         if(secure) {
@@ -68,6 +69,8 @@ async function getFromServer(source,headersIn={},secure = false, password=adminP
         return await data;
     } catch(e) {
         alertText(e);
+    } finally {
+        hideSpinner();
     }
     
 }
@@ -75,6 +78,7 @@ async function getFromServer(source,headersIn={},secure = false, password=adminP
 // a lot of this is kinda waffly because i was trying to get 
 // it to return the right stuff and javascript is asyrcronouse (boo)
 async function postFromServer(bodyInfo, source="", secure=false, password=adminPass) {
+    showSpinner();
     try{
         let href = "";
         if(secure) {
@@ -116,6 +120,8 @@ async function postFromServer(bodyInfo, source="", secure=false, password=adminP
         }
         const response=null;
         return response;
+    } finally {
+        hideSpinner();
     }
 }
 
@@ -136,6 +142,21 @@ function getCookie(cname) {
     }
     return "";
     }
+
+let spinnerTimeout = null;
+
+function showSpinner() {
+    clearTimeout(spinnerTimeout);
+    document.getElementById("loading-spinner").style.display = "block";
+}
+
+function hideSpinner() {
+    // Small delay to prevent flickering on fast requests
+    spinnerTimeout = setTimeout(() => {
+        document.getElementById("loading-spinner").style.display = "none";
+    }, 10);
+}
+
 //someone more organised than me would have set all these html elements to variables so they dont have to get them 50 times
 // also someone who likes things not being dumb more than me would have separated the client and server buttons
 async function controlButton(buttonType) {
