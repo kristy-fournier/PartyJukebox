@@ -17,12 +17,8 @@ dotenv.load_dotenv()
 apikeylastfm = os.getenv("API_KEY")
 soundLocation = os.getenv("DIRECTORY")
 # apikeylastfm = args.apikey
-if soundLocation[-1] == "/" or soundLocation[-1] == "\\":
-    soundLocation = soundLocation
-elif "/" in soundLocation:
-    soundLocation = soundLocation + "/"
-else:
-    soundLocation = soundLocation + "\\"
+if soundLocation[-1] not in ("/", "\\"):
+    soundLocation += "/" if "/" in soundLocation else "\\"
 
 songFiles = os.listdir(soundLocation)
 fileOfDB = sql.connect("songDatabase.db")
@@ -31,7 +27,7 @@ songDatabase = fileOfDB.cursor()
 songDatabase.execute("CREATE TABLE IF NOT EXISTS meta (id TEXT PRIMARY KEY, data TEXT);")
 try:
     songDatabase.execute("INSERT INTO meta (id, data) VALUES (?,?)",("songDirectory",soundLocation))
-except:
+except sql.IntegrityError:
     songDatabase.execute("UPDATE meta SET data = ? WHERE id = 'songDirectory'", (soundLocation,))
 if args.mode.lower() == "update":
     #Create if not exists
@@ -54,7 +50,7 @@ elif args.mode.lower()=="new":
 else:
     raise ValueError("Must be \"new\" or \"update\"")
 
-if args.art.lower() == "true" and not(apikeylastfm == ""):
+if args.art.lower() == "true" and apikeylastfm:
     eta = len(songFiles)*0.25
     if eta > 60:
         print(f"ETA {eta/60:.2f} minutes")
@@ -70,7 +66,7 @@ for i in songFiles:
     filenamesplit = i.split(".")
     extension = filenamesplit[len(filenamesplit)-1]
     lossless = 0 # sqlite doesn't have booleans. what is this, C?
-    if not(extension.lower() in validFormats):
+    if extension.lower() not in validFormats:
         # skip any non music files (like directories or cover art)
         continue
     try:
@@ -86,7 +82,7 @@ for i in songFiles:
             lossless = 1
         title = song['title'][0]
         artist = song['artist'][0]
-    except:
+    except (KeyError, AttributeError):
         if "_" in i:
             # if metadata is missing, try to use file name following "title_artist.mp3"
             song = i.split("_")
@@ -103,7 +99,7 @@ for i in songFiles:
             #if the file is not formatted with an underscore or hyphen, the title is the file name
             title = i
             artist = None
-    if args.art.lower() == "true" and not(apikeylastfm == "") and artist: 
+    if args.art.lower() == "true" and apikeylastfm and artist: 
         # and artist just means anything that only has the x.mp3 title won't bother to check since it'll never exist on last fm
         try:
             # get the images from last fm, try 2 different sizes
@@ -113,7 +109,7 @@ for i in songFiles:
                 if image == "":
                     image = None
             time.sleep(0.01)
-        except:
+        except Exception:
             image=None
     else:
         image=None
@@ -125,7 +121,7 @@ for i in songFiles:
             # artist and title are in id3() and length is in mp3()
             # I dunno why
             length = MP3(soundLocation+i).info.length
-    except:
+    except Exception:
         length = 0
     if len(songFiles) != 1:
         index = (songFiles.index(i))%4

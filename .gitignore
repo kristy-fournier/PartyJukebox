@@ -3,3 +3,4 @@ Server/sound/
 start.bat
 .env
 venv/
+*/__pycache__/

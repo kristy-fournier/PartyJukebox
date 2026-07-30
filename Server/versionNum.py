@@ -17,9 +17,8 @@ class VersionNumber:
         extra = None
         if len(finalSplit) > 1:
             extra = finalSplit[1]
-        if extra.strip() == "":
-            # IDK if this is technically a rule of semantic versioning but i dont think x.y.z- should be valid 
-            extra = None
+            if extra.strip() == "":
+                extra = None
 
         return VersionNumber(major,minor,patch,extra)
 

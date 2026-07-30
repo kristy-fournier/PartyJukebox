@@ -113,7 +113,8 @@ None of this is "secure", but it's better than sending plaintext passwords, whic
 
 Most of this code is my own. This is a project I started as a final for high school, and is the first large (for me) project I've worked on. I have always used basic chat AI to debug or for ideas about best practices, but now I've started to use agents(? is that what claude code is) to fully create new sections of the app. The first one of these is the loading wheel, in the top left of the GUI. There will be more as I continue to expiriment and use more AI. My plan is to keep this section as a list of the features created with AI. I'm very proud of this project, and I want to be clear about what is mine and what isn't.
 
-### AI Created Features
+### Majority AI Created Features
 - Loading Wheel (GUI)
+- Pagination of Search Results
 
 *See `LICENSE.md` for redistribution and editing details.*

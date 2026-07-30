@@ -8,7 +8,7 @@ import vlc,threading,random,argparse,dotenv,os,hashlib,string,getpass
 from versionNum import VersionNumber
 
 # So i'm famously bad at following Semantic versioning, we're gonna see how this goes
-REL_VER_NUM = VersionNumber(0,1,0,"alpha")
+REL_VER_NUM = VersionNumber(0,2,0,"alpha")
 
 # Argparse Stuff
 parser=argparse.ArgumentParser(description="Options for the Webby Bits")
@@ -48,12 +48,8 @@ try:
 except sql.OperationalError:
     print("No Database Found, try running databaseGenerator.py")
     os._exit(1)
-if soundLocation[-1] == "/" or soundLocation[-1] == "\\":
-    pass
-elif "/" in soundLocation:
-    soundLocation += "/"
-else:
-    soundLocation += "\\"
+if soundLocation[-1] not in ("/", "\\"):
+    soundLocation += "/" if "/" in soundLocation else "\\"
 #Initializing all the global stuff
 random.seed()
 global partyMode
@@ -109,8 +105,7 @@ def playQueuedSongs():
                 counter = 0
             playerState = str(player.get_state())
             endStates = ["State.Ended","State.Stopped","State.NothingSpecial"]
-            if playlist and (playerState in endStates or skipNow == True):
-                # New song is in the queue and (the previous song is over or skip has been pressed)
+            if playlist and (playerState in endStates or skipNow):
                 player.stop()
                 skipNow = False
                 songNext = playlist.pop(0)
@@ -123,12 +118,10 @@ def playQueuedSongs():
                 if(isPlaying):
                     socketio.emit("skipSong",None)
                     isPlaying = False
-                # print(playerState)
-                # skip was pressed and there are no new songs
-                skipNow=False
+                skipNow = False
                 songNext = None
                 player.stop()
-            elif len(playlist)<1 and (partyMode == True):
+            elif len(playlist) < 1 and partyMode:
                 fileofDB = sql.connect("songDatabase.db")
                 songDatabase = fileofDB.cursor()
                 songDatabase.execute("SELECT * FROM songs ORDER BY RANDOM() LIMIT 1;")
@@ -233,23 +226,23 @@ def settingsControl():
 @app.route("/search", methods=['GET'])
 def searchSongDB():
     recieveData = request.args.get("query")
-    page = int(request.args.get("page"))
-    if not(page):
+    try:
+        page = int(request.args.get("page", 1))
+    except (TypeError, ValueError):
         page = 1
     fileofDB = sql.connect("songDatabase.db")
     songDatabase = fileofDB.cursor()
     try:
         results = []
         # print(recieveData["search"])
-        if (recieveData == None or recieveData == ""):
+        if (recieveData is None or recieveData == ""):
             songDatabase.execute("SELECT * FROM virtualSongs")
             results = songDatabase.fetchall()
         else:
             songDatabase.execute("SELECT * FROM virtualSongs WHERE virtualSongs MATCH ?",['"' + recieveData +'"'])
             results = songDatabase.fetchall()
         pages = (len(results)//20)+1
-        if(page>0):
-            # Numbers <0 use old rendering
+        if page > 0:
             inBound = 20*(page-1)
             outBound = 20*page
             results = results[inBound:outBound]
@@ -278,7 +271,7 @@ def songadd():
     try:
         if (ADMIN_PASS == request.headers["Jukebox-Auth"]) or controlPerms["AS"]:
             # Password exists and is correct, or it's not restricted
-            if not(controlPerms["DUP"]) and (recieveData['song'] in playlist) and not(ADMIN_PASS == request.headers["Jukebox-Auth"]):
+            if not controlPerms["DUP"] and recieveData['song'] in playlist and ADMIN_PASS != request.headers["Jukebox-Auth"]:
                 return {"error":"This song is already in the queue, hang on!","data":None},409
             else:
                 queueSong(recieveData['song'])
@@ -296,7 +289,7 @@ def getPlaylist():
     fileofDB = sql.connect("songDatabase.db")
     songDatabase = fileofDB.cursor()
     tempPlaylist = []
-    if songNext != None:
+    if songNext is not None:
         # Adds the currently playing song
         songDatabase.execute("SELECT * FROM songs WHERE filename = ?",[songNext])
         result = songDatabase.fetchall()[0]
@@ -322,9 +315,7 @@ def getPlaylist():
         }
         tempPlaylist.append({i:k})
     fileofDB.close()
-    playingState = False
-    if(str(player.get_state())=="State.Playing"):
-        playingState = True
+    playingState = str(player.get_state()) == "State.Playing"
     # print(playingState)
     return {"error":"ok","data":{"playlist":tempPlaylist,"playingState":playingState}},200
 

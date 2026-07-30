@@ -12,6 +12,10 @@ let playlistElapsedSeconds=0;
 let playlistSongLength=-1;
 let currentlyPlaying = false;
 
+let currentSearchTerm = "";
+let currentPage = 1;
+let totalPages = 1;
+
 const params = new URLSearchParams(location.search);
 
 let darkmodetemp = getCookie("darkmode");
@@ -188,6 +192,7 @@ async function controlButton(buttonType) {
         document.getElementById("songlist").innerHTML = "<h1>Search to find songs!</h1>";
         document.getElementById("playlist").innerHTML = "";
         document.getElementById("playlist-mode").style.display = "none";
+        document.getElementById("pagination").style.display = "none"
         document.getElementById("songlist-mode").style.display = "block";
         document.getElementById("settings-mode").style.display = "none";
     } else if (buttonType == "st") { //Settings button
@@ -219,17 +224,23 @@ function searchSongsEnter(e) {
     }
 }
 
-async function searchSongs(searchTerm,page=-1){
+async function searchSongs(searchTerm, page){
+    if (searchTerm === ".all") {
+        searchTerm = "";
+        page = -1;
+        totalPages = 1;
+    } else if (page === undefined) {
+        page = 1;
+    }
+    currentSearchTerm = searchTerm;
+    currentPage = page;
     document.getElementById("songlist").innerHTML = ""
     let fetchResults = await getFromServer("search?query="+searchTerm+"&page="+page);
+    if (!fetchResults) return;
     let searchResults = fetchResults.data.songsobj;
-    //generate the visual song list
-    // let x = document.createElement("button")
-    // x.addEventListener("click",()=>{
-    //     searchSongs(searchTerm,page+1);
-    // })
-    // x.textContent = "Next Page"
-    // document.getElementById("songlist-mode").appendChild(x)
+    if (page !== -1) {
+        totalPages = fetchResults.data.pages;
+    }
     for(var fileName in searchResults) {
         let currentSongInJSON = searchResults[fileName]
         let newItem = document.createElement("div");
@@ -255,7 +266,6 @@ async function searchSongs(searchTerm,page=-1){
         newItem.appendChild(image);
         newItem.appendChild(head3);
         newItem.appendChild(head4);
-        // I like this concept but i'm leaving it out for now
         if(currentSongInJSON.lossless === 1) {
             let losslesstag = document.createElement("p");
             losslesstag.textContent = "Ⓛ";
@@ -263,14 +273,23 @@ async function searchSongs(searchTerm,page=-1){
             newItem.appendChild(losslesstag);
         }
         document.getElementById("songlist").appendChild(newItem);
-    
-    } 
-    if (JSON.stringify(searchResults)==JSON.stringify({})) {
-        //display error if no results
-        document.getElementById("songlist").innerHTML = "<h1>We might not have that one...</h1>";
-    } else {
-        
     }
+    if (JSON.stringify(searchResults)==JSON.stringify({})) {
+        document.getElementById("songlist").innerHTML = "<h1>We might not have that one...</h1>";
+    }
+    updatePagination();
+}
+
+function updatePagination() {
+    let pagination = document.getElementById("pagination");
+    if (currentPage === -1) {
+        pagination.style.display = "none";
+        return;
+    }
+    pagination.style.display = "block";
+    document.getElementById("page-prev").style.display = currentPage > 1 ? "inline-block" : "none";
+    document.getElementById("page-next").style.display = currentPage < totalPages ? "inline-block" : "none";
+    document.getElementById("page-info").textContent = `Page ${currentPage} of ${totalPages}`;
 }
 
 function alertTimeEnter(e){
@@ -684,6 +703,13 @@ document.getElementById("admincheckholder").addEventListener('click',function(e)
 document.getElementById("partymode-button").addEventListener('click',function(){controlButton("pm")})
 document.getElementById("darkmode-button").addEventListener('click',function(){toggleDark()})
 document.getElementById("clear-button").addEventListener('click',function(){clearPlaylist()})
+document.getElementById("page-prev").addEventListener('click', function() {
+    searchSongs(currentSearchTerm, currentPage - 1);
+});
+document.getElementById("page-next").addEventListener('click', function() {
+    searchSongs(currentSearchTerm, currentPage + 1);
+});
+
 //sets the fact that clicking a song needs to return its id to the function to find it
 document.getElementById("songlist").addEventListener('keydown', function(e){checkWhatSongWasClicked(e)});
 document.getElementById("songlist").addEventListener('click', function(e){checkWhatSongWasClicked(e)});
