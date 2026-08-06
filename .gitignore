@@ -1,5 +1,6 @@
-server/sound/
+Server/sound/
 *.db
 start.bat
 .env
 venv/
+*/__pycache__/

@@ -2,7 +2,7 @@
     "name": "Jukebox Remote",
     "short_name": "Jukebox Remote",
     "description": "Controller for the PartyJukebox server app.",
-    "start_url": "index.html",
+    "start_url": "/",
     "display": "standalone",
     "background_color": "#eeeeee",
     "theme_color": "#eeeeee",

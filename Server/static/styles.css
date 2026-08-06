@@ -33,6 +33,26 @@ input, button {
 
 /* Things that are always visible */
 
+/* Loading spinner */
+.loading-spinner {
+    display: none;
+    position: fixed;
+    top: 10%;
+    left: 10%;
+    transform: translate(-50%, -50%);
+    width: 50px;
+    height: 50px;
+    border: 5px solid var(--bg-item);
+    border-top: 5px solid var(--text-color);
+    border-radius: 50%;
+    z-index: 9999;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
 
 body {
     background-color: var(--bg-main);
@@ -112,10 +132,14 @@ h4 {
 }
 
 /* Songlist stuff */
+.songlist-mode {
+    margin-bottom: 150px;
+}
+
 .songlist {
     width: 80%;
     min-width: 400px;
-    margin:auto auto 150px;
+    margin:auto auto 20px;
     display: flex;
     flex-wrap: wrap;
 }
@@ -154,6 +178,20 @@ h4 {
 .go-search {
     width: 20%;
     min-width: 50px;
+}
+
+/* pagination */
+.pagination {
+    display: none;
+    text-align: center;
+    margin: 0 auto 150px;
+    width: 100%;
+}
+
+.pagination button {
+    margin: 0 10px;
+    padding: 5px 15px;
+    cursor: pointer;
 }
 
 .lossless-tag {
@@ -235,7 +273,6 @@ h4 {
 
 .versionNumber {
     font-size: 11px;
-    font-style: italic;
     text-align: left;
     width: 80%;
 }

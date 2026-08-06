@@ -1,5 +1,5 @@
 // set all the global stuff
-let ip;
+let ip = URL.parse(document.URL).host;
 let alertTime = 2;
 let adminPass = "";
 let justSkipped = false;
@@ -12,10 +12,14 @@ let playlistElapsedSeconds=0;
 let playlistSongLength=-1;
 let currentlyPlaying = false;
 
+let currentSearchTerm = "";
+let currentPage = 1;
+let totalPages = 1;
+
 const params = new URLSearchParams(location.search);
 
 let darkmodetemp = getCookie("darkmode");
-if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && darkmodetemp === undefined) {
     darkmodetemp = "true";
 }
 if(darkmodetemp === "") {
@@ -40,14 +44,46 @@ async function alertText(text="Song Added!") {
         alertbox.innerHTML = ""
     }
 }
+
+async function getFromServer(source,headersIn={},secure = false, password=adminPass) {
+    showSpinner();
+    try {
+        let href = "";
+        if(secure) {
+            href = "https://"+ip+"/" + source;
+        } else {
+            href = "http://"+ip+"/" + source;
+        }
+        headersIn["Jukebox-Auth"] = password;
+        headersIn["Accept"] = "application/json";
+        let response = await fetch(href,{
+            method:"GET",
+            headers:headersIn,
+        })
+        let data = await response.json();
+        if (response.status == ERR_NO_ADMIN) {
+            alertText("Error: Admin restricted action")
+        } else if(!response.ok){
+            throw new Error(data.error);
+        }
+        // we add some information from the response just in case it is needed
+        data["ok"] = response.ok;
+        data["status"] = response.status;
+        // console.log(data);
+        return await data;
+    } catch(e) {
+        alertText(e);
+    } finally {
+        hideSpinner();
+    }
+    
+}
+
 // a lot of this is kinda waffly because i was trying to get 
 // it to return the right stuff and javascript is asyrcronouse (boo)
-async function getFromServer(bodyInfo, source="", secure=false, password=adminPass) {
+async function postFromServer(bodyInfo, source="", secure=false, password=adminPass) {
+    showSpinner();
     try{
-        if (bodyInfo != null) {
-            // the currently set password is always included in every request
-            bodyInfo["password"] = password;
-        }
         let href = "";
         if(secure) {
             href = "https://"+ip+"/" + source;
@@ -58,7 +94,8 @@ async function getFromServer(bodyInfo, source="", secure=false, password=adminPa
             method: "POST",
             body: JSON.stringify(bodyInfo),
             headers: {
-                "Content-type": "application/json; charset=UTF-8"
+                "Content-type": "application/json; charset=UTF-8",
+                "Jukebox-Auth": password
             }
             });
         
@@ -81,12 +118,14 @@ async function getFromServer(bodyInfo, source="", secure=false, password=adminPa
         // console.log("error print here:");
         // console.log(e);
         if (e.toString().includes("TypeError: Failed to fetch")){
-            alertText("Error: Can't Connect to Server (is the ip set?)")
+            alertText("Error: Can't Connect to Server")
         } else {
             alertText(e);
         }
         const response=null;
         return response;
+    } finally {
+        hideSpinner();
     }
 }
 
@@ -107,16 +146,31 @@ function getCookie(cname) {
     }
     return "";
     }
+
+let spinnerTimeout = null;
+
+function showSpinner() {
+    clearTimeout(spinnerTimeout);
+    document.getElementById("loading-spinner").style.display = "block";
+}
+
+function hideSpinner() {
+    // Small delay to prevent flickering on fast requests
+    spinnerTimeout = setTimeout(() => {
+        document.getElementById("loading-spinner").style.display = "none";
+    }, 10);
+}
+
 //someone more organised than me would have set all these html elements to variables so they dont have to get them 50 times
 // also someone who likes things not being dumb more than me would have separated the client and server buttons
 async function controlButton(buttonType) {
     if (buttonType == "pp") { // Play-Pause button
-        let result = await getFromServer({control: "play-pause"}, "controls");
+        let result = await postFromServer({control: "play-pause"}, "controls");
         // console.log(result);
         currentlyPlaying = result["data"]["playingState"];
     } else if (buttonType == "sk") { // Skip button
         // clearInterval(playlistTimeTimer);
-        let returnCode = await getFromServer({control: "skip"}, "controls");
+        let returnCode = await postFromServer({control: "skip"}, "controls");
         // console.log(returnCode["ok"])
         if(returnCode["ok"]) {
             if (document.getElementById("playlist-mode").style.display == "block") {
@@ -138,6 +192,7 @@ async function controlButton(buttonType) {
         document.getElementById("songlist").innerHTML = "<h1>Search to find songs!</h1>";
         document.getElementById("playlist").innerHTML = "";
         document.getElementById("playlist-mode").style.display = "none";
+        document.getElementById("pagination").style.display = "none"
         document.getElementById("songlist-mode").style.display = "block";
         document.getElementById("settings-mode").style.display = "none";
     } else if (buttonType == "st") { //Settings button
@@ -149,7 +204,7 @@ async function controlButton(buttonType) {
         document.getElementById("settings-mode").style.display = "block";
         checkSettings()
     } else if (buttonType == "pm") { //Partymode toggle (in settings)
-        let response = await getFromServer({setting: "partymode-toggle"}, "settings")
+        let response = await postFromServer({setting: "partymode-toggle"}, "settings")
         if(response.ok) {
             justChangedSetting = true;
             checkSettings();
@@ -169,11 +224,23 @@ function searchSongsEnter(e) {
     }
 }
 
-async function searchSongs(searchTerm){
+async function searchSongs(searchTerm, page){
+    if (searchTerm === ".all") {
+        searchTerm = "";
+        page = -1;
+        totalPages = 1;
+    } else if (page === undefined) {
+        page = 1;
+    }
+    currentSearchTerm = searchTerm;
+    currentPage = page;
     document.getElementById("songlist").innerHTML = ""
-    let fetchResults = await getFromServer({search:searchTerm},"search").then();
-    let searchResults = fetchResults.data;
-    //generate the visual song list
+    let fetchResults = await getFromServer("search?query="+searchTerm+"&page="+page);
+    if (!fetchResults) return;
+    let searchResults = fetchResults.data.songsobj;
+    if (page !== -1) {
+        totalPages = fetchResults.data.pages;
+    }
     for(var fileName in searchResults) {
         let currentSongInJSON = searchResults[fileName]
         let newItem = document.createElement("div");
@@ -187,17 +254,18 @@ async function searchSongs(searchTerm){
             }
             image.src = currentSongInJSON["art"];
         } catch(err){
-            image.src = "./images/placeholder.png";
+            image.src = "/static/images/placeholder.png";
         }
         image.id = String(fileName)+" image";
         let head3 = document.createElement("h3");
+        head3.id = fileName;
         head3.innerText = currentSongInJSON["title"];
         let head4 = document.createElement("h4");
+        head4.id = fileName;
         head4.innerText = currentSongInJSON["artist"];
         newItem.appendChild(image);
         newItem.appendChild(head3);
         newItem.appendChild(head4);
-        // I like this concept but i'm leaving it out for now
         if(currentSongInJSON.lossless === 1) {
             let losslesstag = document.createElement("p");
             losslesstag.textContent = "Ⓛ";
@@ -205,12 +273,23 @@ async function searchSongs(searchTerm){
             newItem.appendChild(losslesstag);
         }
         document.getElementById("songlist").appendChild(newItem);
-    
-    } 
+    }
     if (JSON.stringify(searchResults)==JSON.stringify({})) {
-        //display error if no results
         document.getElementById("songlist").innerHTML = "<h1>We might not have that one...</h1>";
     }
+    updatePagination();
+}
+
+function updatePagination() {
+    let pagination = document.getElementById("pagination");
+    if (currentPage === -1) {
+        pagination.style.display = "none";
+        return;
+    }
+    pagination.style.display = "block";
+    document.getElementById("page-prev").style.display = currentPage > 1 ? "inline-block" : "none";
+    document.getElementById("page-next").style.display = currentPage < totalPages ? "inline-block" : "none";
+    document.getElementById("page-info").textContent = `Page ${currentPage} of ${totalPages}`;
 }
 
 function alertTimeEnter(e){
@@ -226,40 +305,8 @@ function alertTimeSet(time) {
     alertText("Alerts stay on screen for " + alertTime.toString() + " seconds")
 }
 
-function ipSetEnter(e){
-    if (e.key == "Enter") {
-        e.preventDefault();
-        // why on gosh's green earth am i sending a value here?
-        // im gonna get rid of all these individual "enter" dectectors and do something
-        // like i did for the keyboard selection of elements
-        // basically just if(e==click || e.key == enter)
-        ipSetter(document.getElementById("iptextbox").value)
-    }
-}
-
-function ipSetter(){
-    ipBox = document.getElementById("iptextbox").value
-    if (ipBox == "") {
-        alertText("Your IP is set to "+ip)
-    } else {
-        if (ipBox.includes(":")) {
-            port = ipBox.slice(ipBox.indexOf(":")+1)
-            ip = ipBox;
-            document.cookie = "ip="+ip+"; path=/;"
-            alertText("Your IP is now set to "+ip.slice(0, ipBox.indexOf(":"))+" at port "+port)
-        } else {
-            ip = ipBox + ":19054"
-            document.cookie = "ip="+ip+"; path=/;"
-            alertText("Your IP is now set to "+ipBox+" at port 19054 (Default)")
-        }
-    }
-    // anytime the server ip changes the qrcode should change to use it
-    qrCodeGenerate()
-        
-}
-
 function qrCodeGenerate() {
-    let tempURL = "http://" + document.location.href.split("/")[2] + "/?ip=" + ip;
+    let tempURL = "http://" + URL.parse(document.location.href).host
     document.getElementById("qrcode").innerHTML = "";
     // get the current foreground and background
     let dark = window.getComputedStyle(document.body).getPropertyValue("--text-color");
@@ -317,12 +364,12 @@ async function updateSingleSetting(data) {
 
 async function checkSettings(skipServer=false) {
     //check client stuff first so if the server doesn't exist it can still be changed and seen
-    if (ip.slice(-5)=="19054") {
-        // don't show the port if it is the default
-        document.getElementById("iptextbox").value = ip.slice(0,-6)
-    } else {
-        document.getElementById("iptextbox").value = ip;
-    }
+    // if (ip.slice(-5)=="19054") {
+    //     // don't show the port if it is the default
+    //     document.getElementById("iptextbox").value = ip.slice(0,-6)
+    // } else {
+    //     document.getElementById("iptextbox").value = ip;
+    // }
     qrCodeGenerate()
     document.getElementById("alerttimetextbox").value = alertTime
     partyButtonState = document.getElementById("partymode-button").innerHTML;
@@ -334,7 +381,7 @@ async function checkSettings(skipServer=false) {
         }
     }
     //ping the server here
-    data = await getFromServer({setting: "getsettings"}, "settings");
+    data = await getFromServer("settings");
     x = data["data"];
     if (!(skipServer) || partyButtonState=="N/A") {
         if (x["partymode"] == false) {
@@ -372,7 +419,7 @@ async function addToPlaylist(songObject) {
         }
         image.src = songObject[newItem.id]["art"];
     } catch(err){
-        image.src = "./images/placeholder.png";
+        image.src = "static/images/placeholder.png";
     }
     image.id = String(songObject[newItem.id])+" image";
     let head3 = document.createElement("h3");
@@ -431,7 +478,7 @@ async function skipInPlaylist()  {
 
 async function generateVisualPlaylist(conditions="") {
     document.getElementById("playlist").innerHTML = "<h1 id=\"playlist-alert\"></h1>";
-    data = await getFromServer(null, "playlist");
+    data = await getFromServer("playlist");
     playlist = data["data"]["playlist"];
     currentlyPlaying = data["data"]["playingState"]
     playlist = Object.values(playlist).map(obj => {
@@ -462,7 +509,7 @@ async function generateVisualPlaylist(conditions="") {
                 }
                 image.src = playlist[i]["art"];
             } catch(err){
-                image.src = "./images/placeholder.png";
+                image.src = "/static/images/placeholder.png";
             }
             image.id = String(fileName)+" image";
             let head3 = document.createElement("h3");
@@ -509,9 +556,9 @@ async function generateVisualPlaylist(conditions="") {
 }
 
 async function submitSong(songid) {
-    let returncode = await getFromServer({song: songid}, "songadd");
+    let returncode = await postFromServer({song: songid}, "songadd");
     if(returncode["status"] === ERR_NO_ADMIN) {
-        // right now the error is alerted in getFromServer, maybe will change that
+        // right now the error is alerted in postFromServer, maybe will change that
     } else if(returncode["status"]!==200) {
         alertText("That song's already in the queue! Hang on!")
     } else {
@@ -521,6 +568,7 @@ async function submitSong(songid) {
 function checkWhatSongWasClicked(e) {
     if(e.type == "click" || e.key == "Enter") {
         itemId = e.srcElement.id;
+        // console.log(e.srcElement);
         if ((itemId.length-itemId.lastIndexOf("image") == 5) && itemId.lastIndexOf("image")!=-1) {
             itemId = itemId.slice(0,-6)
         }
@@ -584,7 +632,7 @@ async function submitPerms(e) {
     tempData["PM"] = document.getElementById("partymodesettingcheckbox").checked;
     tempData["VOL"] = document.getElementById("volumechangesettingcheckbox").checked;
     tempData["DUP"] = document.getElementById("duplicateallowesettingcheckbox").checked;
-    let returncode = await getFromServer({"setting":"perms","admin":tempData},"settings");
+    let returncode = await postFromServer({"setting":"perms","admin":tempData},"settings");
     if (!(returncode["ok"])) {
         // if you aren't allowed to check the box then toggle it again
         // its not perfect if you spam click, but it gets the point across to the user
@@ -596,8 +644,8 @@ async function submitPerms(e) {
 }
 
 async function clearPlaylist() {
-    let returncode = await getFromServer({control:"clear"},"controls");
-    if(returncode == ERR_NO_ADMIN || returncode == null) {
+    let returncode = await postFromServer({control:"clear"},"controls");
+    if(returncode["status"] === ERR_NO_ADMIN || returncode == null) {
         // alertText("Admin Restricted ")
         // there's an admin restrict alert built into getFromServer
     } else {
@@ -618,8 +666,8 @@ document.getElementById("playlist-mode").style.display = "none";
 document.getElementById("settings-mode").style.display = "none";
 document.getElementById("volumerange").onchange = async function(e) {
     // there is no reason for this not to be a defined function
-    // FIX THIS
-    let returnValue = await getFromServer({setting:"volume",level:e.target.value}, "settings")
+    // TODO: FIX THIS
+    let returnValue = await postFromServer({setting:"volume",level:e.target.value}, "settings")
     if (returnValue["status"] == ERR_NO_ADMIN) {
         // alertText("Error: Admin restricted action");
         // there's an admin restrict alert built into getFromServer
@@ -648,13 +696,20 @@ document.getElementById("search-button").addEventListener('click', function(){co
 document.getElementById("skip-button").addEventListener('click',function(){controlButton("sk")});
 document.getElementById("go-search").addEventListener('click', function(){searchSongs(document.getElementById("songsearch").value)})
 document.getElementById("songsearch").addEventListener('keydown', function(e){searchSongsEnter(e)});
-document.getElementById("iptextbox").addEventListener('keydown', function(e){ipSetEnter(e)});
+// document.getElementById("iptextbox").addEventListener('keydown', function(e){ipSetEnter(e)});
 document.getElementById("alerttimetextbox").addEventListener('keydown', function(e){alertTimeEnter(e)});
 document.getElementById("adminpasswordbox").addEventListener('keydown',function(e){adminPassEnter(e)});
 document.getElementById("admincheckholder").addEventListener('click',function(e){submitPerms(e)});
 document.getElementById("partymode-button").addEventListener('click',function(){controlButton("pm")})
 document.getElementById("darkmode-button").addEventListener('click',function(){toggleDark()})
 document.getElementById("clear-button").addEventListener('click',function(){clearPlaylist()})
+document.getElementById("page-prev").addEventListener('click', function() {
+    searchSongs(currentSearchTerm, currentPage - 1);
+});
+document.getElementById("page-next").addEventListener('click', function() {
+    searchSongs(currentSearchTerm, currentPage + 1);
+});
+
 //sets the fact that clicking a song needs to return its id to the function to find it
 document.getElementById("songlist").addEventListener('keydown', function(e){checkWhatSongWasClicked(e)});
 document.getElementById("songlist").addEventListener('click', function(e){checkWhatSongWasClicked(e)});
@@ -663,20 +718,6 @@ document.getElementById("songlist").addEventListener('click', function(e){checkW
 // replaced this with "transform" css stuff
 // let tempWidth = document.getElementById('controls').clientWidth;
 // document.getElementById("controls").style.marginLeft = "-"+String(parseInt(tempWidth/2))+"px";
-
-//for my use case (my immediate family), they dont know how to set an ip
-//using this allows the creator of the link for, a qr code for example, to set the ip before distributing the code, and it would all work smoothly
-//example (http://192.168.1.100:8000/?ip=192.168.1.100:19054 sets the ip to the same host at the default port)
-//the port must be set manually using this method, but only has to be done once for the url that ends up being shared
-
-//tries the url first, then the cookie, then the default
-ip = params.get("ip")
-if (ip == null || ip=="") {
-    ip=getCookie("ip")
-}
-if (ip==null || ip==""){
-    ip = ""
-}
 
 // saving the cookies (don't tell the EU)
 document.cookie = "ip="+ip+"; path=/;"
@@ -707,7 +748,8 @@ socket.on("timeUpdate", function(data) {
     // console.log("recieved data from timeUpdate");
     // console.log(data);
     playlistElapsedSeconds = data["elapsedTime"];
-    currentlyPlaying = data["playingState"]
+    currentlyPlaying = data["playingState"];
+    playlistSongLength = data["songLength"]
 });
 
 socket.on("skipSong",() => {

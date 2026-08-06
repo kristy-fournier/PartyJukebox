@@ -1,14 +1,18 @@
 # Wishlist
 *Features I would like to add, will be completed in any order*
-- [ ] Loading indicator while awaiting server stuff
+- [ ] RESTful design
+    - [ ] Change all necesary POSTs to GET,DELETE (probably not PUT)
+    - [ ] Write an api layout
+        - Despite the fact this isn't necesary (nobody but the app should access any url but root) it's probably still a good idea. It's going to be very simple anyway
 - [ ] Refactoring existing code
     - [x] Remove old comments
     - [ ] Update the SQL -> Server -> Client pipeline when searching and building playlist
+        - Moving to mongo might make more sense to maintain a dictionary/JSON like format, but that needs a server
     - [ ] Verify all if-else sequences are correct and not redundant
 - [ ] Security Updates
     - [x] `.env` file for the api keys and other runtime info to be set, rather than in the `.py` files
     - [x] Hashing rather than plaintext sending passwords (that way at least the password text itself isn't transmitted over the network)
-    - [ ] Actually use SSL, for posting (CORS seems like an issue)
+    - [ ] Actually use TLS, for posting
 - [ ] Accessibility
     - [ ] Better use of semantic HTML tags
     - [ ] Full keyboard control (tab, enter to select, tab between control buttons)
@@ -33,3 +37,5 @@ These will still be updated, but they're in a state that I am happy with them
     - [x] Tell clients looking at the playlist when the song has been paused (so they can pause the local timers)
     - [x] Settings updates
         - [x] Without re-posting the server (contain update data in websocket ping)
+- [x] Pages of song results, to avoid very long pages and large data being sent
+- [x] Loading indicator while awaiting server stuff

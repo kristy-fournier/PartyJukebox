@@ -4,13 +4,12 @@
 You can use `--help` on any of the python files to see all the properties that can be changed at runtime
 ## Purpose
 The **Party Jukebox** is a program that allows many people to add music, skip songs, play, and pause from any web device to the same device and playlist. \
-This was created for a personal use case for parties, and is a simple, (mostly) functional solution to have a collective playlist for local mp3 files. \
-The main advantage compared to doing something similar using Spotify is that you can limit the songs that can be played to your selection. Songs can be chosen, but only from a list.
+This was created for a personal use case for parties, and is a simple solution to have a collective playlist for local audio files. \
+The main advantage compared to doing something similar using Spotify or another streaming service is that you can limit the songs that can be played to your selection. Songs can be chosen, but only from a list.
 ## Basic Setup
 ### Client Setup:
-The client is a web application that can be hosted on any server, it need not be the same device running the music player. 
-* If the app is being setup for a large group, you can distribute the url (via QR code, for example) with `?ip=YOURSERVERHOSTNAME:19054` set as an attribute after the url. 
-* You can also add `?darkmode=(true/false)` to set the default colour scheme, but this will be overwritten by the users saved choice in the cookie if they change it themselves
+The client is a web application hosted by the flask app running the audio player. 
+* You can add `?darkmode=(true/false)` to the client URL to set the default colour scheme, but this will be overwritten by the user's saved choice if they change it themselves
 ### Server Setup:
 **Pre-setup:** If you want the songs to have art associated with them, it is all hosted on and retrieved from LastFM, and you will need to sign up for a developer app, and put your key in the database generator \
 \
@@ -23,18 +22,20 @@ webbyBits.py
 .env
 ```
 
-1. Place mp3 files in the `sound/` folder
+1. Place audio files in the `sound/` folder
+    - Supports flac, mp3, and wav files
 2. Rename `example.env` to `.env` and...
     - Set the location where your audio files are (Default: `./sound/`)
     - Set the LastFM API key (Optional)
-    - Change the port of the webbybits server (Default: `19054` )
+    - Change the port of the app (Default: `19054` )
 3. Run `databaseGenerator.py` (Will try to use LastFM API key)
-    * *The `databaseGenerator.py` will index all mp3 files, and save the information to `songDatabase.db`*
-    * *If getting images, this process may take a long time with a large amount of mp3 files*
+    * *The `databaseGenerator.py` will index all audio files, and save the information to `songDatabase.db`*
+    * *If getting images, this process may take a long time with a large amount of audio files*
 4. Run `webbyBits.py`
     * *The port can be customized by editing the `.env` file*
-    * *You can add an admin password at runtime with* `-a AdminPass` *as an atribute*
+    * *You can add an admin password at runtime with* `-a True` *as an atribute*
         * ***NOTE: Do not reuse ANY password for this, it is hashed but 100% unsecure. The best option is just a random string you write down once***
+        * You will be prompted in console for a password to be used
         * If this attribute isn't included a random string will be generated as the admin password
         * This is intended for protecting certain features for small closed events, not for public security
 
@@ -45,8 +46,8 @@ Read on for specific information on each piece of the app.
 ## Details
 These are specific details on each section of the app, and how to use them
 ### Server:
-- `sound/` contains all mp3 files by default
-- `databaseGenerator.py` scans through mp3 files and gets information about them
+- `sound/` contains all audio files by default
+- `databaseGenerator.py` scans through audio files and gets information about them
     - `Filename, Title, Artist, Art, Length` are all saved 
         - *If the title and artist are not in the file metadata, it looks for a format of* `TITLE_ARTIST.mp3` *then of* `ARTIST - TITLE.mp3` *and otherwise defaults to the file name as the title, and no artist*
         - Art is retrieved from LastFM
@@ -97,14 +98,23 @@ From left to right:
 
 The exact process of the password's plaintext scope is as follows
 
-- On the server, you type in the password on the server in the console, the python script takes that plaintext, hashes it, then stores that hash as a variable. The plaintext is also technically a variable, but it's not accessed after that initial hashing. (It's also going to be visible in your console history)
+- On the server, you type in the password on the server in the console, the python script takes that input directly, hashes it, then stores that hash as a variable. The plaintext could be in memory, but it's not accessible in the code after that initial hashing. If you typed your own password, it won't be visible in the console history after it is typed.
 
-- On the client, you type in the password and press enter. A function reads the value of the password box, saves the hash of that password to a variable, and sends it with all your requests. The plaintext is still stored in the inputbox, but if you delete it and don't press enter on the box again, the hash will be stored without keeping the plaintext. (I may change this behaviour so this box auto-clears when enter is pressed, maybe)
+- On the client, you type in the password and press enter. A function reads the value of the password box, saves the hash of that password to a variable, and sends it with all your requests. The plaintext is still stored in the input box, but if you delete it and don't press enter on the box again, the hash will be stored without keeping the plaintext. (I may change this behaviour so this box auto-clears when enter is pressed)
 
-None of this is "secure", but it's better than sending plaintext passwords, which is what I was doing before. Hypothetically somebody who intercepted your packet where you sent the password can't get back the original plaintext, just the hash. 
+None of this is "secure", but it's better than sending plaintext passwords, which is what I was doing before. Hypothetically somebody who intercepted any packets with the password can't get back the original plaintext, just the hash. 
 
 ## External Credits
  - QR Code Generator: JS file found [here](https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js)
- - Cookie Popup: JS file found [here](https://cookieconsent.popupsmart.com/src/js/popper.js)
+ - Socket.io: JS file found [here](https://cdn.socket.io/4.7.5/socket.io.min.js)
+ - SHA256 over http: JS file found [here](https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.11.0/sha256.min.js)
+
+## AI Transparency
+
+Most of this code is my own. This is a project I started as a final for high school, and is the first large (for me) project I've worked on. I have always used basic chat AI to debug or for ideas about best practices, but now I've started to use agents(? is that what claude code is) to fully create new sections of the app. The first one of these is the loading wheel, in the top left of the GUI. There will be more as I continue to expiriment and use more AI. My plan is to keep this section as a list of the features created with AI. I'm very proud of this project, and I want to be clear about what is mine and what isn't.
+
+### Majority AI Created Features
+- Loading Wheel (GUI)
+- Pagination of Search Results
 
 *See `LICENSE.md` for redistribution and editing details.*
