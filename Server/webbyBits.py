@@ -8,7 +8,7 @@ import vlc,threading,random,argparse,dotenv,os,hashlib,string,getpass
 from versionNum import VersionNumber
 
 # So i'm famously bad at following Semantic versioning, we're gonna see how this goes
-REL_VER_NUM = VersionNumber(0,2,0,"alpha")
+REL_VER_NUM = VersionNumber(0,2,1,"alpha")
 
 # Argparse Stuff
 parser=argparse.ArgumentParser(description="Options for the Webby Bits")
